@@ -6,9 +6,11 @@ Back to [_**README**_](./README.md).
 
 Not sure yet how I'll layout this, but for now I'll add new entries to the top of the list to avoid people having to scroll for miles.
 
-### 10/12/24
+### 23/12/24
 
+Basic http listener made. Recieves requests and serves local html files. Added try catch block to stop server crashing when something can't be found.
 
+commit 7a9bbbc9f59c472d741327d59556127e4bd511c7
 
 ### 09/12/24
 
