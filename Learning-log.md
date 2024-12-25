@@ -5,6 +5,13 @@ Back to [_**README**_](./README.md).
 
 Not sure about how I will layout this. Will experiment and see what's most usefull.
 
+### 25/12/24
+
+Added a Mithril SPA. At first I couldn't get it served. 
+Directoru.GetCurrentDirectory() finds the absolute path to current directory. I had put the mithril spa page in a different folder than the server. So that didn't work cause getcurrentdirectory() returned 'C:/absolute_path/repository_name/server', when I needed it to be 'C:/absolutepath/repository_name/front_end'. I could have just moved the mithril app, would have been the easiest, but it made sense to me that server and frontend were in different directories. I wanted to get the path dynamically, rather than hardcoding it, because it might be different in the docker container, so I found a way to remove the last 'folder' from the string. Don't know if this will work once deployed; if getcurrentdirectory() works relative to the root folder on a docker container. Need to find out, or if there's a better way.
+
+commit 81d2df96a766a130cdef424040e81d3b11f629a8
+
 ### 23/12/24
 
 Serving the html file directly, by hard coding the path to the file works. But when using 'context.Request.Url.LocalPath' to retrieve the path from the request sent by the client and then using that as the path to serve the file from, appears to cause the server to look for a favicon.ico file. When it can't fine this the server has an unhandled exception and crashes.

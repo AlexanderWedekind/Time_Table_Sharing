@@ -6,6 +6,12 @@ Back to [_**README**_](./README.md).
 
 Not sure yet how I'll layout this, but for now I'll add new entries to the top of the list to avoid people having to scroll for miles.
 
+### 25/12/24
+
+Added basic Mithril SPA page and managed to get it served by the server.
+
+commit 81d2df96a766a130cdef424040e81d3b11f629a8
+
 ### 23/12/24
 
 Basic http listener made. Recieves requests and serves local html files. Added try catch block to stop server crashing when something can't be found.
