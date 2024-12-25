@@ -5,22 +5,24 @@ using System.Net;
 using System.IO;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
+using System.Reflection.Metadata;
 
 namespace MyTimeDiarySharingServer
 {
     public class Listener
     {
          public static string[] validPaths = [
-            "C:\\Usera\\awedw\\repositories\\personal-projects\\Time_Table_Sharing\\server\\index.html",
-            "C:\\Usera\\awedw\\repositories\\personal-projects\\Time_Table_Sharing\\server\\helloWorld\\hello_there.html"
+            "server/index.html",
+            "server/helloWorld/hello_there.html",
+            "frontend/index.html"
         ];
 
-        public static bool IsPathValid(string pageUrl, string[] paths)
+        public static bool IsPathValid(string requestUrlUrl, string[] paths)
         {
             bool pathIsValid = false;
             foreach(string st in paths)
             {
-                if(pageUrl == st)
+                if(requestUrlUrl == st)
                 {
                     pathIsValid = true; 
                 }
@@ -36,6 +38,7 @@ namespace MyTimeDiarySharingServer
             server.Prefixes.Add("http://localhost:8080/");
             
             server.Start();
+
             Console.WriteLine("Server listening at: http://localhost:8080/");
 
             // while(true)
@@ -43,8 +46,8 @@ namespace MyTimeDiarySharingServer
             //     HttpListenerContext context = server.GetContext();
             //     HttpListenerResponse response = context.Response;
 
-            //     string page = Directory.GetCurrentDirectory()  + context.Request.Url.LocalPath;
-            //     Console.WriteLine("page: " + page);
+            //     string requestUrl = Directory.GetCurrentDirectory()  + context.Request.Url.LocalPath;
+            //     Console.WriteLine("requestUrl: " + requestUrl);
             // }
 
             
@@ -56,27 +59,34 @@ namespace MyTimeDiarySharingServer
                 HttpListenerResponse response = context.Response;
                 //Console.WriteLine("context: " + context + "\ncontext.request: " + context.Request + "\ncontext.request.url: " + context.Request.Url + "\ncontext.request.url.localpath: " + context.Request.Url.LocalPath );
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                //string page = Directory.GetCurrentDirectory() + "\\index.html"; //context.Request.Url.LocalPath;
-                string page = Directory.GetCurrentDirectory() + context.Request.Url.LocalPath;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
-                if(String.IsNullOrEmpty(page) == true || String.IsNullOrWhiteSpace(page) == true)
-                {
-                    page = "index.html;";
-                }
-                if(IsPathValid(page, validPaths) == false)
-                {
-                    page = "index.html";
-                }
+                //string requestUrl = Directory.GetCurrentDirectory() + "\\index.html"; //context.Request.Url.LocalPath;
+                //string requestUrl = Directory.GetCurrentDirectory() + context.Request.Url.LocalPath;
+                string requestUrl = context.Request.Url.LocalPath;
 
+                //Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
+
+                if(String.IsNullOrEmpty(requestUrl) == true || String.IsNullOrWhiteSpace(requestUrl) == true)
+                {
+                    requestUrl = "front_end/index.html";
+                }
+                if(IsPathValid(requestUrl, validPaths) == false)
+                {
+                    requestUrl = "front_end/index.html";
+                }
+                //Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
+
+                string pageAbsolutePath = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\") + 1).Length) + requestUrl;
+                //Console.WriteLine("pageAbsolutePath: \"" + pageAbsolutePath + "\"");
                 try
                 {
-                    TextReader textReader = new StreamReader(page);
+                    TextReader textReader = new StreamReader(pageAbsolutePath);
 
-                    string pageContent = textReader.ReadToEnd();
+                    string requestUrlContent = textReader.ReadToEnd();
 
-                    byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(pageContent);
+                    //Console.WriteLine(requestUrlContent);
+
+                    byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(requestUrlContent);
 
                     response.ContentLength64 = byteArrayOfContent.Length;
 
