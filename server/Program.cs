@@ -10,7 +10,7 @@ namespace MyTimeDiarySharingServer
 {
     public class Listener
     {
-         string[] validPaths = [
+         public static string[] validPaths = [
             "C:\\Usera\\awedw\\repositories\\personal-projects\\Time_Table_Sharing\\server\\index.html",
             "C:\\Usera\\awedw\\repositories\\personal-projects\\Time_Table_Sharing\\server\\helloWorld\\hello_there.html"
         ];
@@ -36,6 +36,7 @@ namespace MyTimeDiarySharingServer
             server.Prefixes.Add("http://localhost:8080/");
             
             server.Start();
+            Console.WriteLine("Server listening at: http://localhost:8080/");
 
             // while(true)
             // {
@@ -53,6 +54,7 @@ namespace MyTimeDiarySharingServer
                 HttpListenerContext context = server.GetContext();
 
                 HttpListenerResponse response = context.Response;
+                //Console.WriteLine("context: " + context + "\ncontext.request: " + context.Request + "\ncontext.request.url: " + context.Request.Url + "\ncontext.request.url.localpath: " + context.Request.Url.LocalPath );
 
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
                 //string page = Directory.GetCurrentDirectory() + "\\index.html"; //context.Request.Url.LocalPath;
@@ -62,6 +64,10 @@ namespace MyTimeDiarySharingServer
                 if(String.IsNullOrEmpty(page) == true || String.IsNullOrWhiteSpace(page) == true)
                 {
                     page = "index.html;";
+                }
+                if(IsPathValid(page, validPaths) == false)
+                {
+                    page = "index.html";
                 }
 
                 try
@@ -82,7 +88,7 @@ namespace MyTimeDiarySharingServer
                 }
                 catch(Exception error)
                 {
-                    Console.WriteLine(error.Message);
+                    Console.WriteLine(error.Message + "\n" + "source: " + error.Source + "\n" + "stack trace: " + error.StackTrace);
                 }
                 
 
