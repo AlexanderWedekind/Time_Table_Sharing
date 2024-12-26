@@ -4,7 +4,9 @@
   "description": "personal learning project; utility: sharing timetables with michelle",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "start": "esbuild index.js --bundle --outfile=bin/main.js --watch",
+    "build": "esbuild index.js --bundle --outfile=bin/main.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +20,8 @@
   "homepage": "https://github.com/AlexanderWedekind/Time_Table_Sharing#readme",
   "dependencies": {
     "mithril": "^2.2.11"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
   }
 }
