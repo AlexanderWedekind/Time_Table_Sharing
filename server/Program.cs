@@ -11,24 +11,45 @@ namespace MyTimeDiarySharingServer
 {
     public class Listener
     {
-         public static string[] validPaths = [
-            "server/index.html",
-            "server/helloWorld/hello_there.html",
-            "frontend/index.html"
+        public static string[] validPaths = [
+            "front_end/public/index.html",
+            "favicon/favicon.ico",
+            "front_end/build/app.js",
+            "server/invalid_path.html"
         ];
 
-        public static bool IsPathValid(string requestUrlUrl, string[] paths)
+        public static string[] validUrls = [
+            "/",
+            "/favicon.ico",
+            "/app.js",
+            "server/invalid_path.html"
+        ];
+
+        public static bool IsUrlValid(string requestUrl, string[] urls)
         {
-            bool pathIsValid = false;
-            foreach(string st in paths)
+            bool urlIsValid = false;
+            foreach(string st in urls)
             {
-                if(requestUrlUrl == st)
+                if(requestUrl == st)
                 {
-                    pathIsValid = true; 
+                    urlIsValid = true; 
                 }
             }
-            return pathIsValid;
+            return urlIsValid;
             
+        }
+
+        public static string MapUrlToPath(string url)
+        {
+            string responseFileLocalPath = "";
+            for(int i = 0; i < validUrls.Length; i++)
+            {
+                if(url == validUrls[i])
+                {
+                    responseFileLocalPath = validPaths[i];
+                }
+            }
+            return responseFileLocalPath;
         }
 
         public static void Main()
@@ -63,30 +84,45 @@ namespace MyTimeDiarySharingServer
                 //string requestUrl = Directory.GetCurrentDirectory() + "\\index.html"; //context.Request.Url.LocalPath;
                 //string requestUrl = Directory.GetCurrentDirectory() + context.Request.Url.LocalPath;
                 string requestUrl = context.Request.Url.LocalPath;
-
+                Console.WriteLine("\n");
+                Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
+                Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
+                Console.WriteLine("-------------------------");
                 //Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
 
                 if(String.IsNullOrEmpty(requestUrl) == true || String.IsNullOrWhiteSpace(requestUrl) == true)
                 {
-                    requestUrl = "front_end/index.html";
+                    requestUrl = "server/invalid_path.html";
                 }
-                if(IsPathValid(requestUrl, validPaths) == false)
-                {
-                    requestUrl = "front_end/index.html";
-                }
-                //Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
 
-                string pageAbsolutePath = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\") + 1).Length) + requestUrl;
-                //Console.WriteLine("pageAbsolutePath: \"" + pageAbsolutePath + "\"");
+                if(IsUrlValid(requestUrl, validUrls) == false)
+                {
+                    requestUrl = "server/invalid_path.html";
+                }
+
+                string responseLocalPath = MapUrlToPath(requestUrl);
+
+                Console.WriteLine("processed requestUrl into responsePath: \"" + responseLocalPath + "\"");
+
+                //string jsRequestPath = "front_end/public/app.js";
+
+                //string jsPath = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\") + 1).Length) + jsRequestPath;
+
+                string responseFileAbsolutePath = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\") + 1).Length) + responseLocalPath;
+                //Console.WriteLine("htmlPath: \"" + htmlPath + "\"");
+                //Console.WriteLine("jsPath: \"" + jsPath + "\"");
+                Console.WriteLine("responseFileAbsolutePath: \"" + responseFileAbsolutePath + "\"");
+                Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
+
                 try
                 {
-                    TextReader textReader = new StreamReader(pageAbsolutePath);
+                    
 
-                    string requestUrlContent = textReader.ReadToEnd();
+                    TextReader responseFileTextReader = new StreamReader(responseFileAbsolutePath);
 
-                    //Console.WriteLine(requestUrlContent);
-
-                    byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(requestUrlContent);
+                    string responseFileContent = responseFileTextReader.ReadToEnd();
+                    
+                    byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(responseFileContent);
 
                     response.ContentLength64 = byteArrayOfContent.Length;
 

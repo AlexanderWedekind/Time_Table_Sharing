@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "test",
-    "start": "esbuild index.js --bundle --outfile=bin/main.js --watch",
-    "build": "esbuild index.js --bundle --outfile=bin/main.js"
+    "start": "esbuild index.js --bundle --outfile=build/app.js --watch",
+    "build": "esbuild index.js --bundle --outfile=build/app.js"
   },
   "repository": {
     "type": "git",
