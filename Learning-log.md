@@ -12,6 +12,13 @@ Directoru.GetCurrentDirectory() finds the absolute path to current directory. I 
 
 commit 81d2df96a766a130cdef424040e81d3b11f629a8
 
+Mithril:
+
+m.mount(root, ...) puts the content into the component, updates the component automatically every time content changes, no page reload.
+
+m.render(root, ...) on the other hand puts content into the component, but no automatic updates. Instead you call m.render again to update at time of your choosing.
+
+
 ### 23/12/24
 
 Serving the html file directly, by hard coding the path to the file works. But when using 'context.Request.Url.LocalPath' to retrieve the path from the request sent by the client and then using that as the path to serve the file from, appears to cause the server to look for a favicon.ico file. When it can't fine this the server has an unhandled exception and crashes.
