@@ -5,6 +5,19 @@ Back to [_**README**_](./README.md).
 
 Not sure about how I will layout this. Will experiment and see what's most usefull.
 
+### 26/12/26
+
+**To do later:**
+
+Notes for things to find out for hosting on my own pc, rather than a free webhosting service:
+- find my router's ip address
+- find out how to forward my pc's port
+- find out how to tell router to forward requests to the right computer based on the port in the request (usually called: port forwarding, or found in NAT settings)
+- find out if my ip is static or if it changes
+- find out how to keep the pc listening to the port (this might not need attention, but might need firewall setting changed)
+- find out about free DNS services for a subdomain
+- if my ip is not static: find out if I need a service that dynamically updates my ip linked to my domain
+
 ### 25/12/24
 
 Added a Mithril SPA. At first I couldn't get it served. 
