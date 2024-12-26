@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/AlexanderWedekind/Time_Table_Sharing/issues"
   },
-  "homepage": "https://github.com/AlexanderWedekind/Time_Table_Sharing#readme"
+  "homepage": "https://github.com/AlexanderWedekind/Time_Table_Sharing#readme",
+  "dependencies": {
+    "mithril": "^2.2.11"
+  }
 }
