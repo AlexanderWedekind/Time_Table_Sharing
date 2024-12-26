@@ -1,0 +1,19 @@
+{
+  "name": "time_table_sharing_webapp",
+  "version": "1.0.0",
+  "description": "personal learning project; utility: sharing timetables with michelle",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderWedekind/Time_Table_Sharing.git"
+  },
+  "author": "Alexander Wedekind",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlexanderWedekind/Time_Table_Sharing/issues"
+  },
+  "homepage": "https://github.com/AlexanderWedekind/Time_Table_Sharing#readme"
+}
