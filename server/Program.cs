@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.Metadata;
+using DotNetEnv;
 
 namespace MyTimeDiarySharingServer
 {
@@ -56,6 +57,19 @@ namespace MyTimeDiarySharingServer
 
         public static void Main()
         {
+            Env.Load();
+            string ENV = "";
+            if(Environment.GetEnvironmentVariable("ENV") != null)
+            {
+                ENV = Environment.GetEnvironmentVariable("ENV");
+            }
+            else
+            {
+                Console.WriteLine("Warning: Environment Variables not present; setting Environment to 'development'");
+                ENV = "development";
+            }
+            Console.WriteLine("ENV is: \" " + ENV + " \"");
+
             HttpListener server = new HttpListener();
             server.Prefixes.Add("http://127.0.0.1:8080/");
             server.Prefixes.Add("http://localhost:8080/");
@@ -78,25 +92,52 @@ namespace MyTimeDiarySharingServer
 
                 string responseLocalPath = "";
 
-                switch(requestUrl)
+                switch(ENV)
                 {
-                    case "/":
-                        responseLocalPath = "front_end/public/index.html";
+                    case "development":
+                        switch(requestUrl)
+                        {
+                            case "/":
+                                responseLocalPath = "front_end/public/index.html";
+                                break;
+                            case "/styles.css":
+                                responseLocalPath = "front_end/public/styles.css";
+                                break;
+                            case "/app.js":
+                                responseLocalPath = "front_end/dev_build/app.js";
+                                break;
+                            case "/favicon.ico":
+                                responseLocalPath = "favicon/favicon.ico";
+                                break;
+                            default:
+                                Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
+                                responseLocalPath = "front_end/public/index.html";
+                                break;
+                        }
                         break;
-                    case "/styles.css":
-                        responseLocalPath = "front_end/public/styles.css";
-                        break;
-                    case "/app.js":
-                        responseLocalPath = "front_end/build/app.js";
-                        break;
-                    case "/favicon.ico":
-                        responseLocalPath = "favicon/favicon.ico";
-                        break;
-                    default:
-                        Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
-                        responseLocalPath = "front_end/public/index.html";
+                    case "production":
+                        switch(requestUrl)
+                        {
+                            case "/":
+                                responseLocalPath = "front_end/public/index.html";
+                                break;
+                            case "/styles.css":
+                                responseLocalPath = "front_end/public/styles.css";
+                                break;
+                            case "/app.js":
+                                responseLocalPath = "front_end/prod_build/app.js";
+                                break;
+                            case "/favicon.ico":
+                                responseLocalPath = "favicon/favicon.ico";
+                                break;
+                            default:
+                                Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
+                                responseLocalPath = "front_end/public/index.html";
+                                break;
+                        }
                         break;
                 }
+                
                 
                 // if(String.IsNullOrEmpty(requestUrl) == true || String.IsNullOrWhiteSpace(requestUrl) == true)
                 // {
