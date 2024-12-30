@@ -5,6 +5,18 @@ Back to [_**README**_](./README.md).
 
 Not sure about how I will layout this. Will experiment and see what's most usefull.
 
+### 30/12/24
+
+Couldn't debug the js as error only showed up after bundling and serving. Wasn't able to tell wher in source code error comes from as the client's erroe message stack trace just refers to the bundled code, not the source code. Here's what to do:
+
+- create source map while bundling with esbuild; flag: --sourcemap
+- this will be inline in code.
+- to protect sourcecode (if not public anyway) make source map hidden; flag: --sourcemap=hidden
+- delete comment in bundled code, linking to the sourcemap, to prevent browser automatically looking for it
+- another option: have soucemap available only in development Serve app locally and debug. don't expose source file in production.
+- to debug locally: in stall sourcemad explorer; npm install -g source-map-explorer; run it on bundled code and the map: source-map-explorer [bundled code].js [bundled code].js.map
+- can also debug locally in vscode with the .map file and use that to locate original error; source-map-explorer toll does this
+
 ### 26/12/26
 
 **To do later:**
