@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "test",
-    "dev-start": "cross-env NODE_ENV=development && esbuild src/index.js --bundle --outfile=dev_build/app.js --sourcemap=external --watch && source-map-explorer dev_build/app.js dev_build/app.js.map",
-    "dev-build": "cross-env NODE_ENV=development && esbuild src/index.js --bundle --outfile=dev_build/app.js --sourcemap=external && source-map-explorer dev_build/app.js dev_build/app.js.map",
-    "prod-build": "cross-env NODE_ENV=production && esbuild src/index.js --bundle --outfile=prod_build.js"
+    "dev-start": "cross-env NODE_ENV=development && esbuild src/index.js --bundle --outfile=dev_build/app.js --sourcemap --watch",
+    "dev-build": "cross-env NODE_ENV=development && esbuild src/index.js --bundle --outfile=dev_build/app.js --sourcemap",
+    "prod-build": "cross-env NODE_ENV=production && esbuild src/index.js --bundle --outfile=prod_build/app.js"
   },
   "repository": {
     "type": "git",
