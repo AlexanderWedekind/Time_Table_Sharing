@@ -109,6 +109,9 @@ namespace MyTimeDiarySharingServer
                             case "/favicon.ico":
                                 responseLocalPath = "favicon/favicon.ico";
                                 break;
+                            case "/app.js.map":
+                                responseLocalPath = "front_end/dev_build/app.js.map";
+                                break;
                             default:
                                 Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
                                 responseLocalPath = "front_end/public/index.html";
