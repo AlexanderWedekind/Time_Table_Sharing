@@ -84,7 +84,14 @@ namespace MyTimeDiarySharingServer
 
                 HttpListenerResponse response = context.Response;
                 string requestUrl = "";
-                requestUrl = context.Request.Url.LocalPath;
+                if(context.Request.Url.LocalPath != null)
+                {
+                    requestUrl = context.Request.Url.LocalPath;
+                }
+                else
+                {
+                    requestUrl = "/";
+                }
                 Console.WriteLine("\n");
                 Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
                 Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
@@ -103,14 +110,14 @@ namespace MyTimeDiarySharingServer
                             case "/styles.css":
                                 responseLocalPath = "front_end/public/styles.css";
                                 break;
-                            case "/app.js":
-                                responseLocalPath = "front_end/dev_build/app.js";
+                            case "/index.js":
+                                responseLocalPath = "front_end/dev_build/index.js";
                                 break;
                             case "/favicon.ico":
                                 responseLocalPath = "favicon/favicon.ico";
                                 break;
-                            case "/app.js.map":
-                                responseLocalPath = "front_end/dev_build/app.js.map";
+                            case "/index.js.map":
+                                responseLocalPath = "front_end/dev_build/index.js.map";
                                 break;
                             default:
                                 Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
@@ -127,8 +134,8 @@ namespace MyTimeDiarySharingServer
                             case "/styles.css":
                                 responseLocalPath = "front_end/public/styles.css";
                                 break;
-                            case "/app.js":
-                                responseLocalPath = "front_end/prod_build/app.js";
+                            case "/index.js":
+                                responseLocalPath = "front_end/prod_build/index.js";
                                 break;
                             case "/favicon.ico":
                                 responseLocalPath = "favicon/favicon.ico";
