@@ -33,17 +33,21 @@ commit 0974435c16c96db9761f3b52a2b68aea6232603c
 commit e0bd02883dbe89e7486b40ec804c53b49219e3ab
 See below 'debug client side js' as well.
 
+Further to above:
+Have managed to get everything working, apart from the source-map-explorer tool. Minify, bundling, generating sourcemap and serving it to client upon request for client side error massages, all work. So I will stick with this method for debugging, as it can still keep source code safe due to env vars and keeping the sourcemap out of the prod env.
+commit b6f976dc9371c6c600a62780f26acd4f56877ffe
+
 ### Debug client side js
 
-Couldn't debug the js as error only showed up after bundling and serving. Wasn't able to tell wher in source code error comes from as the client's erroe message stack trace just refers to the bundled code, not the source code. Here's what to do:
+Couldn't debug the js as error only showed up after bundling and serving. Wasn't able to tell wher in source code error comes from as the client's error message stack trace just refers to the bundled code, not the source code. Google and gpt3.5 say here's what to do:
 
 - create source map while bundling with esbuild; flag: --sourcemap
 - this will be inline in code.
 - to protect sourcecode (if not public anyway) make source map hidden; flag: --sourcemap=hidden
 - delete comment in bundled code, linking to the sourcemap, to prevent browser automatically looking for it
 - another option: have soucemap available only in development Serve app locally and debug. don't expose source file in production.
-- to debug locally: in stall sourcemad explorer; npm install -g source-map-explorer; run it on bundled code and the map: source-map-explorer [bundled code].js [bundled code].js.map
-- can also debug locally in vscode with the .map file and use that to locate original error; source-map-explorer toll does this
+- to debug locally: in stall sourcemap explorer; npm install -g source-map-explorer; run it on bundled code and the map: source-map-explorer [bundled code].js [bundled code].js.map
+- can also debug locally in vscode with the .map file and use that to locate original error; source-map-explorer tool does this
 
 ## 26/12/26
 
