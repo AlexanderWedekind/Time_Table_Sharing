@@ -7,6 +7,7 @@ using System.Text;
 using System.Security.Cryptography.X509Certificates;
 using System.Reflection.Metadata;
 using DotNetEnv;
+using templates;
 
 namespace MyTimeDiarySharingServer
 {
@@ -55,6 +56,9 @@ namespace MyTimeDiarySharingServer
         //     return responseFileLocalPath;
         // }
 
+        public delegate string GetTemplate();
+        public delegate string GetFile(string path);
+
         public static void Main()
         {
             Env.Load();
@@ -80,6 +84,9 @@ namespace MyTimeDiarySharingServer
 
             while(true)
             {
+                GetTemplate getTemplate = () => {return "";};
+                GetFile getFile = (path) => {return "";};
+                
                 HttpListenerContext context = server.GetContext();
 
                 HttpListenerResponse response = context.Response;
@@ -92,6 +99,7 @@ namespace MyTimeDiarySharingServer
                 {
                     requestUrl = "/";
                 }
+
                 Console.WriteLine("\n");
                 Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
                 Console.WriteLine("requestUrl: \"" + requestUrl + "\"");
@@ -106,18 +114,23 @@ namespace MyTimeDiarySharingServer
                         {
                             case "/":
                                 responseLocalPath = "front_end/public/index.html";
+                                getTemplate = htmlTemplates.LandingPageTemplate;
                                 break;
                             case "/styles.css":
                                 responseLocalPath = "front_end/public/styles.css";
+                                getTemplate = cssTemplates.LandingPageCss;
                                 break;
                             case "/index.js":
                                 responseLocalPath = "front_end/dev_build/index.js";
+                                getTemplate = jsTemplates.LandingPageLogic;
                                 break;
                             case "/favicon.ico":
                                 responseLocalPath = "favicon/favicon.ico";
+                                getFile = templates.templates.AnyOneFile;
                                 break;
                             case "/index.js.map":
                                 responseLocalPath = "front_end/dev_build/index.js.map";
+                                getFile = templates.templates.AnyOneFile;
                                 break;
                             default:
                                 Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
@@ -172,9 +185,19 @@ namespace MyTimeDiarySharingServer
                 {
                     
 
-                    TextReader responseFileTextReader = new StreamReader(responseFileAbsolutePath);
+                    //TextReader responseFileTextReader = new StreamReader(responseFileAbsolutePath);
 
-                    string responseFileContent = responseFileTextReader.ReadToEnd();
+                    //string responseFileContent = responseFileTextReader.ReadToEnd();
+
+                    string responseFileContent = "";
+                    if(requestUrl == "/favicon.ico" || requestUrl == "/index.js.map")
+                    {
+                        responseFileContent = getFile(responseLocalPath);
+                    }
+                    else
+                    {
+                        responseFileContent = getTemplate();
+                    }
                     
                     byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(responseFileContent);
 

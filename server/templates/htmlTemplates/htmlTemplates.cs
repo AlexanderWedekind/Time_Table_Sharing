@@ -13,7 +13,7 @@ namespace templates
         public static string LandingPageTemplate()
         {
             string element = "";
-            string path = Directory.GetCurrentDirectory() + "/templates/htmlTamplates/templateFiles/landingPage.html";
+            string path = Directory.GetCurrentDirectory() + "/templates/htmlTemplates/templateFiles/landingPage.html";
             Console.WriteLine("html path: \" " + path + " \"");
             TextReader textReader = new StreamReader(path);
             element = textReader.ReadToEnd();
