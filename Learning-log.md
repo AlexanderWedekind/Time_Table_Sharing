@@ -5,6 +5,16 @@ Back to [_**README**_](./README.md).
 
 Not sure about how I will layout this. Will experiment and see what's most usefull.
 
+## 12/01/24
+
+### different ways of serving depending on env makes code more complicated
+
+I still have it so that the server can serve in either development or production environment, and also that it can serve either the mithril app or the templates stored on the server. So that's 4 different ways of serving files depending on environment variables. I don't want to do away with the mithril app just yet, because I think it would be good to compare the two, to see if my assumptions about learning a new framework isn't worth the effort for this simple an app. But that does make it terrible for coding the server:
+Because I have been serving the mithril app differently from how I figured out I can serve the templates I have to have if statements everywhere, evaluating the ENv variables and tell the server to do different things, when matching url's to paths, when composing the files absolute paths, and when deciding how to serve it.
+This will only get worse and more complicated as the app growns.
+I'll remedy this by serving the mithrill app in the same way as the templated app. Rather than mathing url's to local paths and prepending this to make a correct absolute filepath, which is different all the time because the two app's sit in different folders, I'll compose the files absolute path prepend once, at startup of server, and then I'll math urls to absolute paths straightaway. I will use a dictionary for this, and I'll make it so I only have to do this once, by writing methods that do Dictionary.add("url", "absolute path") for each. Then just one if switch statement at startup that call the right method to fill the one dictionary.
+this will give me one place to refer to when trying to fetch files. And it will give me one easy to read and modify place to add new paths, without having to change anything else about server code.
+
 ## 30/12/24
 
 ### Use .env on frontend and sbackend
