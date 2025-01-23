@@ -8,6 +8,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Reflection.Metadata;
 using DotNetEnv;
 using templates;
+using System.Collections;
+using elements;
 
 namespace MyTimeDiarySharingServer
 {
@@ -56,23 +58,155 @@ namespace MyTimeDiarySharingServer
         //     return responseFileLocalPath;
         // }
 
+        
+
+        public static Dictionary<string, string> UrlToPathMatches = new Dictionary<string, string>();
+
+        public static string absolutePathsPrepend = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\")).Length);
+
+        public static Elements htmlElements = new Elements();
+        
+        public static string environment = "";
+
+        public static string serving = "";
+
+        public static void SetDevMithrilPaths()
+        {
+            UrlToPathMatches.Add("/",  absolutePathsPrepend + "/front_end/public/index.html");
+            UrlToPathMatches.Add("/styles.css", absolutePathsPrepend + "/front_end/public/styles.css");
+            UrlToPathMatches.Add("/index.js", absolutePathsPrepend + "/front_end/dev_build/index.js");
+            UrlToPathMatches.Add("/favicon.ico", absolutePathsPrepend + "/favicon/favicon.ico");
+            UrlToPathMatches.Add("/index.js.map", absolutePathsPrepend + "/front_end/dev_build/index.js.map");
+        }
+
+        public static void SetProdMithrilPaths()
+        {
+            UrlToPathMatches.Add("/", absolutePathsPrepend + "/front_end/public/index.html");
+            UrlToPathMatches.Add("/styles.css", absolutePathsPrepend + "/front_end/public/styles.css");
+            UrlToPathMatches.Add("/index.js", absolutePathsPrepend + "/front_end/prod_build/index.js");
+            UrlToPathMatches.Add("/favicon.ico", absolutePathsPrepend + "/favicon/favicon.ico");
+        }
+
+        public static void SetDevTemplatePaths()
+        {
+            UrlToPathMatches.Add("/", absolutePathsPrepend + "/server/templates/htmlTemplates/templateFiles/landingPage.html");
+            UrlToPathMatches.Add("/landingPage.css", absolutePathsPrepend + "/server/templates/cssTemplates/templatefiles/landingPage.css");
+            UrlToPathMatches.Add("/landingPage.js", absolutePathsPrepend + "/server/templates/jsTemplates/templateFiles/landingPage.js");
+            UrlToPathMatches.Add("/favicon.ico", absolutePathsPrepend + "/favicon/favicon.ico");
+            UrlToPathMatches.Add("/landingPage.js.map", absolutePathsPrepend + "/server/sourceMap/landingPage.js.map");
+        }
+
+        public static void SetProdTemplatePaths()
+        {
+            UrlToPathMatches.Add("/", absolutePathsPrepend + "/server/templates/htmlTemplates/templateFiles/landingPage.html");
+            UrlToPathMatches.Add("/landingPage.css", absolutePathsPrepend + "/server/templates/cssTemplates/templatefiles/landingPage.css");
+            UrlToPathMatches.Add("/landingPage.js", absolutePathsPrepend + "/server/templates/jsTemplates/templateFiles/landingPage.js");
+            UrlToPathMatches.Add("/favicon.ico", absolutePathsPrepend + "/favicon/favicon.ico");
+        }
+
+        public static bool TestENVvar(Dictionary<string, string> EnvVars)
+        {
+            bool setPropoperly = false;
+            if(EnvVars["ENV"] == "development")
+            {
+                setPropoperly = true;
+            }
+            if(EnvVars["ENV"] == "production")
+            {
+                setPropoperly = true;
+            }
+            return setPropoperly;
+        }
+
+        public static bool testSERVINGvar(Dictionary<string, string> EnvVars)
+        {
+            bool setPropoperly = false;
+            if(EnvVars["SERVING"] == "mithril")
+            {
+                setPropoperly = true;
+            }
+            if(EnvVars["SERVING"] == "templates")
+            {
+                setPropoperly = true;
+            }
+            return setPropoperly;
+        }
+
+        public static (bool success, string filePath) MatchUrlsToPaths(string url, Dictionary<string, string> paths, out string filePath)
+        {
+            bool success = false;
+            filePath = "";
+            foreach (var match in paths)
+            {
+                if(url == match.Key)
+                {
+                    filePath = match.Value;
+                    success = true;
+                }
+            }
+            return (success, filePath);
+        }
+
         public delegate string GetTemplate();
         public delegate string GetFile(string path);
 
         public static void Main()
         {
             Env.Load();
-            string ENV = "";
-            if(Environment.GetEnvironmentVariable("ENV") != null)
+            Dictionary<string, string> EnvVars = new Dictionary<string, string>();
+
+            foreach(DictionaryEntry entry in Environment.GetEnvironmentVariables())
             {
-                ENV = Environment.GetEnvironmentVariable("ENV");
+                EnvVars.Add(Convert.ToString(entry.Key), Convert.ToString(entry.Value));
+            }
+
+            if(TestENVvar(EnvVars) == false)
+            {
+                Console.WriteLine("Environment variable 'ENV' not set as expected; setting to \"development\".");
+                environment = "development";
             }
             else
             {
-                Console.WriteLine("Warning: Environment Variables not present; setting Environment to 'development'");
-                ENV = "development";
+                environment = EnvVars["ENV"];
+                Console.WriteLine("'ENV': \"" + environment + "\"");
             }
-            Console.WriteLine("ENV is: \" " + ENV + " \"");
+
+            if(testSERVINGvar(EnvVars) == false)
+            {
+                Console.WriteLine("Environment variable 'SERVING' not set as expected; setting to 'mithril'.");
+                serving = "mithril";
+            }
+            else
+            {
+                serving = EnvVars["SERVING"];
+                Console.WriteLine("'SERVING': \"" + serving + "\"");
+            }
+            
+            switch(environment)
+            {
+                case "production":
+                    switch(serving)
+                    {
+                        case "mithril":
+                            SetProdMithrilPaths();
+                            break;
+                        case "templates":
+                            SetProdTemplatePaths();
+                            break;
+                    }
+                    break;
+                case "development":
+                    switch(serving)
+                    {
+                        case "mithril":
+                            SetDevMithrilPaths();
+                            break;
+                        case "templates":
+                            SetDevTemplatePaths();
+                            break;
+                    }
+                    break;
+            }
 
             HttpListener server = new HttpListener();
             server.Prefixes.Add("http://127.0.0.1:8080/");
@@ -82,14 +216,16 @@ namespace MyTimeDiarySharingServer
 
             Console.WriteLine("Server listening at: http://localhost:8080/");
 
+            //Console.WriteLine(htmlElements.landingPage);
+
             while(true)
             {
                 GetTemplate getTemplate = () => {return "";};
                 GetFile getFile = (path) => {return "";};
                 
                 HttpListenerContext context = server.GetContext();
-
                 HttpListenerResponse response = context.Response;
+                HttpListenerRequest request = context.Request;
                 string requestUrl = "";
                 if(context.Request.Url.LocalPath != null)
                 {
@@ -107,80 +243,20 @@ namespace MyTimeDiarySharingServer
 
                 string responseLocalPath = "";
 
-                switch(ENV)
+                if(MatchUrlsToPaths(requestUrl, UrlToPathMatches, out string filePath).success == true)
                 {
-                    case "development":
-                        switch(requestUrl)
-                        {
-                            case "/":
-                                responseLocalPath = "front_end/public/index.html";
-                                getTemplate = htmlTemplates.LandingPageTemplate;
-                                break;
-                            case "/styles.css":
-                                responseLocalPath = "front_end/public/styles.css";
-                                getTemplate = cssTemplates.LandingPageCss;
-                                break;
-                            case "/index.js":
-                                responseLocalPath = "front_end/dev_build/index.js";
-                                getTemplate = jsTemplates.LandingPageLogic;
-                                break;
-                            case "/favicon.ico":
-                                responseLocalPath = "favicon/favicon.ico";
-                                getFile = templates.templates.AnyOneFile;
-                                break;
-                            case "/index.js.map":
-                                responseLocalPath = "front_end/dev_build/index.js.map";
-                                getFile = templates.templates.AnyOneFile;
-                                break;
-                            default:
-                                Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
-                                responseLocalPath = "front_end/public/index.html";
-                                break;
-                        }
-                        break;
-                    case "production":
-                        switch(requestUrl)
-                        {
-                            case "/":
-                                responseLocalPath = "front_end/public/index.html";
-                                break;
-                            case "/styles.css":
-                                responseLocalPath = "front_end/public/styles.css";
-                                break;
-                            case "/index.js":
-                                responseLocalPath = "front_end/prod_build/index.js";
-                                break;
-                            case "/favicon.ico":
-                                responseLocalPath = "favicon/favicon.ico";
-                                break;
-                            default:
-                                Console.WriteLine("Invalid url from client to server; defaulting to home-path.");
-                                responseLocalPath = "front_end/public/index.html";
-                                break;
-                        }
-                        break;
+                    responseLocalPath = filePath;
                 }
-                
-                
-                // if(String.IsNullOrEmpty(requestUrl) == true || String.IsNullOrWhiteSpace(requestUrl) == true)
-                // {
-                //     requestUrl = "server/invalid_path.html";
-                // }
-
-                // if(IsUrlValid(requestUrl, validUrls) == false)
-                // {
-                //     requestUrl = "server/invalid_path.html";
-                // }
-
-                //string responseLocalPath = MapUrlToPath(requestUrl);
+                else
+                {
+                    Console.WriteLine("No match found for that url; setting url to 'home-page'.");
+                    responseLocalPath = MatchUrlsToPaths("/", UrlToPathMatches, out string result).filePath;
+                }
 
                 Console.WriteLine("processed requestUrl into responsePath: \"" + responseLocalPath + "\"");
 
-                string responseFileAbsolutePath = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\") + 1).Length) + responseLocalPath;
-                Console.WriteLine("responseFileAbsolutePath: \"" + responseFileAbsolutePath + "\"");
                 Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-");
-                Console.WriteLine("\nServer listening at: http://localhost:8080/");
-
+                
                 try
                 {
                     
@@ -189,15 +265,15 @@ namespace MyTimeDiarySharingServer
 
                     //string responseFileContent = responseFileTextReader.ReadToEnd();
 
-                    string responseFileContent = "";
-                    if(requestUrl == "/favicon.ico" || requestUrl == "/index.js.map")
-                    {
-                        responseFileContent = getFile(responseLocalPath);
-                    }
-                    else
-                    {
-                        responseFileContent = getTemplate();
-                    }
+                    string responseFileContent = templates.templates.AnyOneFile(responseLocalPath);
+                    // if(requestUrl == "/favicon.ico" || requestUrl == "/index.js.map")
+                    // {
+                    //     responseFileContent = getFile(responseLocalPath);
+                    // }
+                    // else
+                    // {
+                    //     responseFileContent = getTemplate();
+                    // }
                     
                     byte[] byteArrayOfContent = Encoding.UTF8.GetBytes(responseFileContent);
 

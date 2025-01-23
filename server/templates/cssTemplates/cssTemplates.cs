@@ -7,7 +7,7 @@ namespace templates
         public static string LandingPageCss()
         {
             string element = "";
-            string path = Directory.GetCurrentDirectory() + "/cssTemplates/templateFiles/landingPage.css";
+            string path = Directory.GetCurrentDirectory() + "/templates/cssTemplates/templateFiles/landingPage.css";
             Console.WriteLine("css path: \" " + path + " \"");
             TextReader textReader = new StreamReader(path);
             element = textReader.ReadToEnd();

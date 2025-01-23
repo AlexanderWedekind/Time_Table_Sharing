@@ -7,7 +7,7 @@ namespace templates
         public static string LandingPageLogic()
         {
             string element = "";
-            string path = Directory.GetCurrentDirectory() + "templates/jsTemplates/templateFiles/landingPage.js";
+            string path = Directory.GetCurrentDirectory() + "/templates/jsTemplates/templateFiles/landingPage.js";
             Console.WriteLine("js path: \" " + path + " \"");
             TextReader textReader = new StreamReader(path);
             element = textReader.ReadToEnd();
