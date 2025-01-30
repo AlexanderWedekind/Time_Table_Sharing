@@ -3,38 +3,75 @@ using templates;
 
 namespace elements
 {
+    public class HtmlElement
+    {
+        string elementType = "";
+        string js = "";
+        string style = "";
+
+        Dictionary<string, string> attributes = new Dictionary<string, string>();
+        
+        string Build(string nested)
+        {
+            return Elements.HtmlElementString(elementType: elementType, attributes: attributes, nested: nested, js: js);           
+        }
+        HtmlElement(string type)
+        {
+            elementType = type;
+        }
+    }
+
+    public struct ElementType
+    {
+        public ElementType()
+        {
+            string div = "div";
+            string a = "a";
+            string h1 = "h1";
+            string h2 = "h2";
+            string h3 = "h3";
+            string h4 = "h4";
+            string h5 = "h5";
+            string h6 = "h6";
+            string p = "p";
+            string ul = "ul";
+            string ol = "ol";
+            string li = "li";
+            string button = "button";
+            string form = "form";
+            string input = "input";
+            string label = "label"; 
+        }        
+    }
+
+    public static bool AttributeIsValid(string elementType, string attributeAllowed)
+    {
+        bool valid = false;
+        
+        switch(attributeAllowed)
+        {
+            case "all":
+                valid = true;
+                break;
+            default:
+                if(attributeAllowed == elementType)
+                {
+                    valid = true;
+                }
+                break;
+    }
+        return valid;
+    }
+
     public class Elements
     {
+        
         public string landingPage = "";
 
-        public struct ElementType
-        {
-            public ElementType()
-            {
-                string div = "div";
-                string a = "a";
-                string h1 = "h1";
-                string h2 = "h2";
-                string h3 = "h3";
-                string h4 = "h4";
-                string h5 = "h5";
-                string h6 = "h6";
-                string p = "p";
-                string ul = "ul";
-                string ol = "ol";
-                string li = "li";
-                string button = "button";
-                string form = "form"; 
-            }
-            
-        }
-
-        public Dictionary<string, string> ElementAttributes = new Dictionary<string, string>();
         
-        public string Element(string elementType, Dictionary<string, string> attributes, string nested = "", string js = "") //string style = "", string id = "", string elementClass = "")
-        {
 
-        //arguments:
+
+                //arguments:
         
         //elementType
         //nested
@@ -65,6 +102,17 @@ namespace elements
         //button
             //
 
+
+        public Dictionary<string, string> ElementAttributes = new Dictionary<string, string>();
+
+        public Dictionary<string, string> AddAttributes()
+        {
+            Dictionary<string, string> attributes = new Dictionary<string, string>();
+            return attributes;
+        }
+        
+        public static string HtmlElementString(string elementType, Dictionary<string, string> attributes, string nested = "", string js = "")
+        {
             string thisElementType = elementType.ToLower();
             
             bool isVoid = false;
@@ -73,8 +121,6 @@ namespace elements
             string openingTag = "";
             string buildingOpeningTag = $"<{thisElementType}";
             string closingTag = $"</{thisElementType}>";
-
-
 
             switch(thisElementType)
             {
@@ -128,6 +174,7 @@ namespace elements
                         }
                     }
 
+                    elementString = buildingOpeningTag + ">";
                     return elementString;
 
                 case false:
@@ -136,7 +183,7 @@ namespace elements
                     {
                         if(attribute.Key.ToLower() == thisElementType || attribute.Key.ToLower() == "all")
                         {
-                            buildingOpeningTag = buildingOpeningTag + $" {attribute.Value}";
+                            buildingOpeningTag = buildingOpeningTag + " " + $"{attribute.Value}";
                         }
                         else
                         {
