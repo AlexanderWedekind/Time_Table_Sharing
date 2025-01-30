@@ -44,24 +44,7 @@ namespace elements
         }        
     }
 
-    public static bool AttributeIsValid(string elementType, string attributeAllowed)
-    {
-        bool valid = false;
-        
-        switch(attributeAllowed)
-        {
-            case "all":
-                valid = true;
-                break;
-            default:
-                if(attributeAllowed == elementType)
-                {
-                    valid = true;
-                }
-                break;
-    }
-        return valid;
-    }
+    
 
     public class Elements
     {
@@ -109,6 +92,26 @@ namespace elements
         {
             Dictionary<string, string> attributes = new Dictionary<string, string>();
             return attributes;
+        }
+
+        public static bool AttributeIsValid(string elementType, string attributeAllowed)
+        {
+            bool valid = false;
+            
+            switch(attributeAllowed)
+            {
+                case "all":
+                    valid = true;
+                    break;
+                default:
+                    if(attributeAllowed == elementType)
+                    {
+                        valid = true;
+                    }
+                    break;
+            }
+
+            return valid;
         }
         
         public static string HtmlElementString(string elementType, Dictionary<string, string> attributes, string nested = "", string js = "")
