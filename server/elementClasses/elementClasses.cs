@@ -5,6 +5,7 @@ namespace elements
 {
     public class HtmlElement
     {
+        string elementName = "";
         string elementType = "";
         string js = "";
         string style = "";
@@ -13,7 +14,7 @@ namespace elements
         
         string Build(string nested)
         {
-            return Elements.HtmlElementString(elementType: elementType, attributes: attributes, nested: nested, js: js);           
+            return Elements.HtmlElementString(elementName: elementName, elementType: elementType, attributes: attributes, nested: nested, js: js);           
         }
         HtmlElement(string type)
         {
@@ -118,7 +119,7 @@ namespace elements
             return valid;
         }
         
-        public static string HtmlElementString(string elementType, Dictionary<string, string> attributes, string nested = "", string js = "")
+        public static string HtmlElementString(string elementName, string elementType, Dictionary<string, string> attributes, string nested = "", string js = "")
         {
             string thisElementType = elementType.ToLower();
             
@@ -194,7 +195,7 @@ namespace elements
                         }
                         else
                         {
-                            Console.WriteLine($"Incorrect html syntax:\nA \" {thisElementType} \" element can't have attribute \" {attribute.Value} \"");
+                            Console.WriteLine($"Incorrect html syntax:\nElement \" {elementName} \" of type \" {thisElementType} \" can't have attribute \" {attribute.Value} \"");
                         }
                     }
 
