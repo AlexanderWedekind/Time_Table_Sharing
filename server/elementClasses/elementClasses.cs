@@ -94,6 +94,10 @@ namespace elements
             return attributes;
         }
 
+        public static int numberOfAttributes = 0;
+
+        public static Array[,] allAttributes = new Array[numberOfAttributes, 3];
+
         public static bool AttributeIsValid(string elementType, string attributeAllowed)
         {
             bool valid = false;

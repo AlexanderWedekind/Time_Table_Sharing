@@ -65,15 +65,15 @@ namespace test_1
                 Console.WriteLine($"number of lines read: {nrOfLinesRead}");
                 if(line != null)
                 {
-                lines[readLineIndex] = line;
-                readLineIndex++;
-                int linesCounter = 0;
-                Console.WriteLine("lines-array so far:");
-                foreach(string item in lines)
-                {
-                    Console.WriteLine($"lines[{linesCounter}]: {item}");
-                    linesCounter++;
-                }
+                    lines[readLineIndex] = line;
+                    readLineIndex++;
+                    int linesCounter = 0;
+                    Console.WriteLine("lines-array so far:");
+                    foreach(string item in lines)
+                    {
+                        Console.WriteLine($"lines[{linesCounter}]: {item}");
+                        linesCounter++;
+                    }
                 }
             }
             while(line != null);
