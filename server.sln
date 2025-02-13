@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_1", "test_1\test_1.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_2", "test_2\test_2.csproj", "{A36D5B6C-B76C-448A-B6CE-2875EAEEA685}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI_c_sharp_to_html", "CLI_c_sharp_to_html\CLI_c_sharp_to_html.csproj", "{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{A36D5B6C-B76C-448A-B6CE-2875EAEEA685}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A36D5B6C-B76C-448A-B6CE-2875EAEEA685}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A36D5B6C-B76C-448A-B6CE-2875EAEEA685}.Release|Any CPU.Build.0 = Release|Any CPU
+		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
