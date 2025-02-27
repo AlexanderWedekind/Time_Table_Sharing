@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_2", "test_2\test_2.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI_c_sharp_to_html", "CLI_c_sharp_to_html\CLI_c_sharp_to_html.csproj", "{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test calling method from Dict", "test calling method from Dict\test calling method from Dict.csproj", "{846C60B8-194B-46A1-8923-969E185143BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "learn dynamic expandable objects", "learn dynamic expandable objects\learn dynamic expandable objects.csproj", "{4F92D75C-C537-46EC-9FDD-F4BB1C20BD94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{867DE2B2-E01E-43E8-9C8B-7CAB5E29FB67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{846C60B8-194B-46A1-8923-969E185143BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{846C60B8-194B-46A1-8923-969E185143BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{846C60B8-194B-46A1-8923-969E185143BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{846C60B8-194B-46A1-8923-969E185143BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F92D75C-C537-46EC-9FDD-F4BB1C20BD94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F92D75C-C537-46EC-9FDD-F4BB1C20BD94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F92D75C-C537-46EC-9FDD-F4BB1C20BD94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F92D75C-C537-46EC-9FDD-F4BB1C20BD94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
