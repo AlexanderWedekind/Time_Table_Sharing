@@ -6,7 +6,7 @@ namespace elements
     public class HtmlElement
     {
         string elementName = "";
-        string elementType = "";
+        string type = "";
         string js = "";
         string style = "";
 
@@ -14,11 +14,27 @@ namespace elements
         
         string Build(string nested)
         {
-            return Elements.HtmlElementString(elementName: elementName, elementType: elementType, attributes: attributes, nested: nested, js: js);           
+            return ElementsFunctionality.HtmlElementString(elementName: elementName, elementType: type, attributes: attributes, nested: nested, js: js);           
         }
-        HtmlElement(string type)
+        public HtmlElement(string type, string jsPath = "", string cssPath = "")
         {
-            elementType = type;
+            this.type = type;
+            this.js = templates.templates.AnyOneFile(jsPath);
+            this.style = templates.templates.AnyOneFile(cssPath);
+        }
+
+        public void Create(string name, string type, string jsPath, string cssPath)
+        {
+            Listener.allElements.Add(new HtmlElement(type: type, jsPath: jsPath, cssPath: cssPath));
+            Listener.Elements.Add(name, this.Build);
+        }
+    }
+
+    public class Div : HtmlElement
+    {
+        public Div(string jsPath, string cssPath) : base(type: "div", jsPath, cssPath)
+        {
+
         }
     }
 
@@ -47,7 +63,7 @@ namespace elements
 
     
 
-    public class Elements
+    public class ElementsFunctionality
     {
         
         public string landingPage = "";
@@ -86,6 +102,7 @@ namespace elements
         //button
             //
 
+        
 
         public Dictionary<string, string> ElementAttributes = new Dictionary<string, string>();
 
@@ -230,7 +247,7 @@ namespace elements
                 </html>
                 """;
             }      
-        public Elements()
+        public ElementsFunctionality()
         {
             ElementType elementType = new ElementType();
             landingPage = templates.templates.AnyOneFile(MyTimeDiarySharingServer.Listener.absolutePathsPrepend + "/server/templates/htmlTemplates/templateFiles/landingPage.html");

@@ -64,7 +64,13 @@ namespace MyTimeDiarySharingServer
 
         public static string absolutePathsPrepend = Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - Directory.GetCurrentDirectory().Substring(Directory.GetCurrentDirectory().LastIndexOf("\\")).Length);
 
-        public static Elements htmlElements = new Elements();
+        public static ElementsFunctionality elementsFunctionality = new ElementsFunctionality();
+
+        public delegate string BuildElement(string nested);
+
+        public static List<Object> allElements = new List<object>();
+
+        public static Dictionary<string, BuildElement> Elements = new Dictionary<string, BuildElement>();
         
         public static string environment = "";
 
@@ -216,7 +222,7 @@ namespace MyTimeDiarySharingServer
 
             Console.WriteLine("Server listening at: http://localhost:8080/");
 
-            //Console.WriteLine(htmlElements.landingPage);
+            //Console.WriteLine(elementsFunctionality.landingPage);
 
             while(true)
             {
