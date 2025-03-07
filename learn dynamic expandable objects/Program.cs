@@ -159,7 +159,7 @@ class HtmlElement : DynamicObject
 
     public override bool TrySetMember(SetMemberBinder binder, object? value)
     {
-        elementAttributes[binder.Name] = Convert.ToString(value);
+        elementAttributes[binder.Name.ToLower()] = Convert.ToString(value);
         OpeningString();
         BuildElementStringMethod();
         AddStringMethodToElementStringMethods();
@@ -506,8 +506,10 @@ public class Program
     {
         Div.New("house");
         E.house.style = "color: red";
+        E.house.Style = "color:";
+        E.house.style = E.house.style + " blue";
         Img.New("mac");
-        Console.WriteLine(E.house.Build(E.mac.Build()));
-        Console.WriteLine(S.house("a nested string"));
+        E.mac.source = "\"a picture of Mac\"";
+        Console.WriteLine(S.house(S.mac("a nested string")));
     }
 }
