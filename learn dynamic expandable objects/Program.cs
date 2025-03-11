@@ -44,32 +44,47 @@ public class AttributeNotSet : CustomException
     {
         this.description = $"Unable to retrieve the value of attribute '{attributeName}' from element; attribute '{attributeName}' has not yet been set.";
     }
+
+    public AttributeNotSet(AttributeNotSet exception)
+    {
+
+    }
 }
 
-public class ElementStringMethodNotInE : Exception
+public class ElementStringMethodNotInS : Exception
 {
     public string? message;
 
-    public ElementStringMethodNotInE(string name, bool invoke)
+    public ElementStringMethodNotInS(string name, bool invoke)
     {
         if(invoke == true)
         {
-            this.message = $"Could not invoke '{name}'; no element string method '{name}' found in 'Program.E'.";
+            this.message = $"Could not invoke '{name}'; no element string method '{name}' found in 'Program.S'.";
         }
         else
         {
             this.message = $"Could not retrieve the value of '{name}'; no element string method '{name}' found on 'Program.E'.";
         }
     }
+
+    public ElementStringMethodNotInS(ElementStringMethodNotInS exception)
+    {
+
+    }
 }
 
-public class ElementInstanceNotInElements : Exception
+public class ElementInstanceNotInE : Exception
 {
     public string? message;
 
-    public ElementInstanceNotInElements(string name)
+    public ElementInstanceNotInE(string name)
     {
-        this.message = $"Unable to access element '{name}'; no html element instance named '{name}' found in 'Program.elements'.";
+        this.message = $"Unable to access element '{name}'; no html element instance named '{name}' found in 'Program.E'.";
+    }
+
+    public ElementInstanceNotInE(ElementInstanceNotInE exception)
+    {
+
     }
 }
 
@@ -90,10 +105,10 @@ public class ElementStringMethods : DynamicObject
             }
             else
             {
-                throw new ElementStringMethodNotInE(binder.Name, invoke: false);
+                throw new ElementStringMethodNotInS(binder.Name, invoke: false);
             }
         }
-        catch(ElementStringMethodNotInE exception)
+        catch(ElementStringMethodNotInS exception)
         {
             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
         }
@@ -120,10 +135,10 @@ public class ElementStringMethods : DynamicObject
             }
             else
             {
-                throw new ElementStringMethodNotInE(binder.Name, invoke: true);
+                throw new ElementStringMethodNotInS(binder.Name, invoke: true);
             }
         }
-        catch(ElementStringMethodNotInE exception)
+        catch(ElementStringMethodNotInS exception)
         {
             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
         }
@@ -147,11 +162,11 @@ public class ElementInstances : DynamicObject
             }
             else
             {
-                throw new ElementInstanceNotInElements(binder.Name);
+                throw new ElementInstanceNotInE(binder.Name);
             }
             
         }
-        catch(ElementInstanceNotInElements exception)
+        catch(ElementInstanceNotInE exception)
         {
             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
         }
