@@ -1,24 +1,48 @@
 ﻿using System;
 using System.Dynamic;
+using System.Reflection.Metadata;
 
 namespace learningDynamicExpandableObjexts;
 
-public class ElementAllreadyExists : Exception
+public class CustomException : Exception
 {
-    public string? message;
+    public string description = "";
+
+    public CustomException()
+    {
+
+    }
+    public CustomException(string name)
+    {
+        
+    }
+
+    public CustomException(CustomException inner)
+    {
+        this.description = $"{inner.description}\n{inner.StackTrace}";
+    }
+
+}
+
+public class ElementAllreadyExists : CustomException
+{
+    
     public ElementAllreadyExists(string name)
     {
-        this.message = $"An element named \" {name} \" allready exists.";
+        this.description = $"An element named \" {name} \" allready exists.";         
+    }
+
+    public ElementAllreadyExists(ElementAllreadyExists inner)
+    {
+       
     }
 }
 
-public class AttributeNotSet : Exception
+public class AttributeNotSet : CustomException
 {
-    public string? message;
-
     public AttributeNotSet(string attributeName)
     {
-        this.message = $"Unable to retrieve the value of attribute '{attributeName}' from element; attribute '{attributeName}' has not yet been set.";
+        this.description = $"Unable to retrieve the value of attribute '{attributeName}' from element; attribute '{attributeName}' has not yet been set.";
     }
 }
 
@@ -171,7 +195,7 @@ class HtmlElement : DynamicObject
         result = null;
         try
         {
-            if(elementAttributes.TryGetValue(binder.Name, out string? value))
+            if(elementAttributes.TryGetValue(binder.Name.ToLower(), out string? value))
             {
                 result = value;
                 return true;
@@ -183,7 +207,7 @@ class HtmlElement : DynamicObject
         }
         catch(AttributeNotSet exception)
         {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}, at {exception.TargetSite}.");
+            Console.WriteLine($"{exception.description}\nAt: {exception.StackTrace}, at {exception.TargetSite}.");
         }
         return true;
     }
@@ -241,9 +265,10 @@ class HtmlElement : DynamicObject
     {   
         Program.S.elementStringMethods[this.name] = this.Build;
     }
-    public HtmlElement(string name, string type = "html")
+    public HtmlElement(string name, bool isVoid, string type = "html")
     {
         this.type = type;
+        this.isVoidElement = isVoid;
         this.name = name;
         int voidIndex = Types.elementTypesList.Length;
         for(int i = 0; i < Types.elementTypesList.Length; i++)
@@ -272,115 +297,277 @@ class HtmlElement : DynamicObject
     }
 }
 
-class Div : HtmlElement
-{
-    public static void New(string name)
-    {
-        try
-        {
-            if(Program.E.elementInstances.TryGetValue(name, out object? element))
-            {
-                throw new ElementAllreadyExists(name);
-            }
-            else
-            {
-                Program.E.elementInstances[name] = new Div(name);
-                Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
-            }
-        }
-        catch(ElementAllreadyExists exception)
-        {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
-        };
+// class Div : HtmlElement
+// {
+//     public static void New(string name)
+//     {
+//         try
+//         {
+//             if(Program.E.elementInstances.TryGetValue(name, out object? element))
+//             {
+//                 throw new ElementAllreadyExists(name);
+//             }
+//             else
+//             {
+//                 Program.E.elementInstances[name] = new Div(name);
+//                 Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
+//             }
+//         }
+//         catch(ElementAllreadyExists exception)
+//         {
+//             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+//         };
         
-    }
-    public Div(string name = "", string type = "div") : base(name: name, type: type)
+//     }
+//     public Div(string name = "", bool isVoid = false, string type = "div") : base(name: name, isVoid: isVoid, type: type)
+//     {
+       
+//     }
+// }
+
+// class P : HtmlElement
+// {
+//     public static void New(string name)
+//     {
+//         try
+//         {
+//             if(Program.E.elementInstances.TryGetValue(name, out object? value))
+//             {
+//                 throw new ElementAllreadyExists(name);
+//             }
+//             else
+//             {
+//                 Program.E.elementInstances[name] = new P(name);
+//                 Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
+//             }
+//         }
+//         catch(ElementAllreadyExists exception)
+//         {
+//             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+//         }
+//     }
+
+//     public P(string name = "", bool isVoid = false, string type = "p") : base(name: name, isVoid: isVoid, type: type)
+//     {
+
+//     }
+// }
+
+// class H1 : HtmlElement
+// {
+//     public static void New(string name)
+//     {
+//         try
+//         {
+//             if(Program.E.elementInstances.TryGetValue(name, out object? element))
+//             {
+//                 throw new ElementAllreadyExists(name);
+//             }
+//             else
+//             {
+//                 Program.E.elementInstances[name] = new H1(name);
+//                 Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
+//             }
+//         }
+//         catch(ElementAllreadyExists exception)
+//         {
+//             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+//         };
+        
+//     }
+//     public H1(string name = "", bool isVoid = false, string type = "h1") : base(name: name, isVoid: isVoid, type: type)
+//     {
+       
+//     }
+// }
+
+// class Img : HtmlElement
+// {
+//     public static void New(string name)
+//     {
+//         try
+//         {
+//             if(Program.E.elementInstances.TryGetValue(name, out object? element))
+//             {
+//                 throw new ElementAllreadyExists(name);
+//             }
+//             else
+//             {
+//                 Program.E.elementInstances[name] = new Img(name);
+//                 Console.WriteLine($"Created new element \" {name} \"; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
+//             }
+//         }
+//         catch(ElementAllreadyExists exception)
+//         {
+//             Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+//         };
+        
+//     }
+//     public Img(string name = "", bool isVoid = true, string type = "img") : base(name: name, isVoid: isVoid, type: type)
+//     {
+       
+//     }
+// }
+
+public class NewElement
+{
+    public static void Element(string name, bool isVoid, string type)
     {
+        if(Program.E.elementInstances.TryGetValue(name.ToLower(), out object? result))
+        {
+            throw new ElementAllreadyExists(name);
+        }
+        else
+        {
+            Program.E.elementInstances[name.ToLower()] = new HtmlElement(name: name, isVoid: isVoid, type: type);
+        }
        
     }
-}
 
-class P : HtmlElement
-{
-    public static void New(string name)
-    {
-        try
-        {
-            if(Program.E.elementInstances.TryGetValue(name, out object? value))
-            {
-                throw new ElementAllreadyExists(name);
-            }
-            else
-            {
-                Program.E.elementInstances[name] = new P(name);
-                Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
-            }
-        }
-        catch(ElementAllreadyExists exception)
-        {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
-        }
-    }
-
-    public P(string name = "", string type = "p") : base(name: name, type: type)
-    {
-
-    }
-}
-
-class H1 : HtmlElement
-{
-    public static void New(string name)
-    {
-        try
-        {
-            if(Program.E.elementInstances.TryGetValue(name, out object? element))
-            {
-                throw new ElementAllreadyExists(name);
-            }
-            else
-            {
-                Program.E.elementInstances[name] = new H1(name);
-                Console.WriteLine($"Created new element '{name}'; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
-            }
-        }
-        catch(ElementAllreadyExists exception)
-        {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
-        };
-        
-    }
-    public H1(string name = "", string type = "h1") : base(name: name, type: type)
+    public static void Div(string name, bool isVoid = false, string type = "div")
     {
        
+        Element(name: name, isVoid: isVoid, type: type);
     }
-}
 
-class Img : HtmlElement
-{
-    public static void New(string name)
+    public static void P(string name, bool isVoid = false, string type = "p")
     {
-        try
-        {
-            if(Program.E.elementInstances.TryGetValue(name, out object? element))
-            {
-                throw new ElementAllreadyExists(name);
-            }
-            else
-            {
-                Program.E.elementInstances[name] = new Img(name);
-                Console.WriteLine($"Created new element \" {name} \"; added object '{name}' to 'Program.E'; added string method 'string {name}(string nested)' to 'Program.S'.");
-            }
-        }
-        catch(ElementAllreadyExists exception)
-        {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
-        };
-        
+        Element(name: name, isVoid: isVoid, type: type);
     }
-    public Img(string name = "", string type = "img") : base(name: name, type: type)
+
+    public static void Button(string name, bool isVoid = false, string type = "button")
     {
-       
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void A(string name, bool isVoid = false, string type = "a")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void H1(string name, bool isVoid = false, string type = "h1")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void H2(string name, bool isVoid = false, string type = "h2")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void H3(string name, bool isVoid = false, string type = "h3")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Form(string name, bool isVoid = false, string type = "form")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Ul(string name, bool isVoid = false, string type = "ul")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Ol(string name, bool isVoid = false, string type = "ol")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Li(string name, bool isVoid = false, string type = "li")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Table(string name, bool isVoid = false, string type = "table")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Th(string name, bool isVoid = false, string type = "th")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Tr(string name, bool isVoid = false, string type = "tr")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Td(string name, bool isVoid = false, string type = "td")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Img(string name, bool isVoid = true, string type = "img")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Label(string name, bool isVoid = false, string type = "label")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Link(string name, bool isVoid = true, string type = "link")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Br(string name, bool isVoid = true, string type = "br")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Hr(string name, bool isVoid = true, string type = "hr")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Input(string name, bool isVoid = true, string type = "input")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Source(string name, bool isVoid = true, string type = "source")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Area(string name, bool isVoid = true, string type = "area")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Base(string name, bool isVoid = true, string type = "base")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Col(string name, bool isVoid = true, string type = "col")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Embed(string name, bool isVoid = true, string type = "embed")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Meta(string name, bool isVoid = true, string type = "meta")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Track(string name, bool isVoid = true, string type = "track")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Wbr(string name, bool isVoid = true, string type = "wbr")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
     }
 }
 
@@ -405,18 +592,16 @@ public struct Types
         "tr",
         "td",
         "th",
+        "label",
         "void types from here-on",
         "img",
         "link",
         "br",
         "hr",
-        "input",
-        "source",
         "area",
         "base",
         "col",
         "embed",
-        "img",
         "input",
         "meta",
         "source",
@@ -504,12 +689,20 @@ public class Program
     
     public static void Main()
     {
-        Div.New("house");
-        E.house.style = "color: red";
-        E.house.Style = "color:";
-        E.house.style = E.house.style + " blue";
-        Img.New("mac");
-        E.mac.source = "\"a picture of Mac\"";
-        Console.WriteLine(S.house(S.mac("a nested string")));
+        try
+        {
+            NewElement.Div("house");
+            E.house.style = "color: red";
+            E.house.Style = "color:";
+            E.house.style = E.house.style + " blue";
+            NewElement.Img("mac");
+            NewElement.Div("house");
+            E.mac.source = "\"a picture of Mac\"";
+            Console.WriteLine(S.house(S.mac("a nested string")));
+        }
+        catch(CustomException exception)
+        {
+            Console.WriteLine(exception.description + exception.StackTrace);
+        }
     }
 }
