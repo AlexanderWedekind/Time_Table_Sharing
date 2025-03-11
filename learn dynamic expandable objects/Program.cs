@@ -280,6 +280,27 @@ class HtmlElement : DynamicObject
     {   
         Program.S.elementStringMethods[this.name] = this.Build;
     }
+
+    private void RetrieveJsFromFile()
+    {
+
+    }
+
+    private void RetrieveCssFromFile()
+    {
+
+    }
+
+    private void MakeJsFile()
+    {
+
+    }
+
+    private void MakeCssFile()
+    {
+
+    }
+
     public HtmlElement(string name, bool isVoid, string type = "html")
     {
         this.type = type;
@@ -305,6 +326,8 @@ class HtmlElement : DynamicObject
             }
             
         };
+        this.MakeJsFile();
+        this.MakeCssFile();
         this.OpeningString();
         this.ClosingString();
         this.BuildElementStringMethod();
