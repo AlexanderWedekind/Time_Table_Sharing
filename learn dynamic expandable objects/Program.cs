@@ -1,90 +1,102 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Reflection.Metadata;
+using System.Runtime.ExceptionServices;
+using System.Text.RegularExpressions;
 
 namespace learningDynamicExpandableObjexts;
 
-public class CustomException : Exception
+public class WarningMessage
 {
-    public string description = "";
-
-    public CustomException()
+    public static string ElementAllreadyExists(string name)
     {
-
-    }
-    public CustomException(string name)
-    {
-        
+        return $"An element named '{name}' already exists; by creating another one, you are replacing the original '{name}' with the new '{name}'.";
     }
 
-    public CustomException(CustomException inner)
+    public static string ChangedElementName(string name)
     {
-        this.description = $"{inner.description}\n{inner.StackTrace}";
+        return $"Note: non-letter and non-number chars stripped from element-name '{name}'; element is called '{Regex.Replace(name, @"[^a-z^A-Z^0-9]", "")}'.";
     }
 
-}
-
-public class ElementAllreadyExists : CustomException
-{
-    
-    public ElementAllreadyExists(string name)
+    public static string AttributeNotSet(string elementName, string attributeName)
     {
-        this.description = $"An element named \" {name} \" allready exists.";         
+        return $"Unable to retrieve the value of attribute '{attributeName}' from element '{elementName}'; attribute '{attributeName}' has not yet been set.";
     }
 
-    public ElementAllreadyExists(ElementAllreadyExists inner)
-    {
-       
-    }
-}
-
-public class AttributeNotSet : CustomException
-{
-    public AttributeNotSet(string attributeName)
-    {
-        this.description = $"Unable to retrieve the value of attribute '{attributeName}' from element; attribute '{attributeName}' has not yet been set.";
-    }
-
-    public AttributeNotSet(AttributeNotSet exception)
-    {
-
-    }
-}
-
-public class ElementStringMethodNotInS : Exception
-{
-    public string? message;
-
-    public ElementStringMethodNotInS(string name, bool invoke)
+    public static string ElementStringMethodNotInS(string elementName, bool invoke)
     {
         if(invoke == true)
         {
-            this.message = $"Could not invoke '{name}'; no element string method '{name}' found in 'Program.S'.";
+            return $"Could not invoke '{elementName}'; no element string method '{elementName}' found in 'Program.S'.";
         }
         else
         {
-            this.message = $"Could not retrieve the value of '{name}'; no element string method '{name}' found on 'Program.E'.";
+            return $"Could not retrieve the value of '{elementName}'; no element string method '{elementName}' found on 'Program.S'.";
         }
     }
 
-    public ElementStringMethodNotInS(ElementStringMethodNotInS exception)
+    public static string ElementNotInE(string elementName)
     {
-
-    }
-}
-
-public class ElementInstanceNotInE : Exception
-{
-    public string? message;
-
-    public ElementInstanceNotInE(string name)
-    {
-        this.message = $"Unable to access element '{name}'; no html element instance named '{name}' found in 'Program.E'.";
+        return $"Unable to access element '{elementName}'; no html element instance named '{elementName}' found in 'Program.E'.";
     }
 
-    public ElementInstanceNotInE(ElementInstanceNotInE exception)
+    public static string AttributeValueOverwrittenNotice(string elementName, string attributeName)
     {
+        return $"Value of attribute '{attributeName}' on element '{elementName}' overwritten. To concatenate use: 'E.{elementName}.{attributeName} = E.{elementName}.{attributeName} + <YOUR VALUE>'";
+    }
 
+    public static string TryingToSetAttributeToNonStringValue(string elementName, string attributeName)
+    {
+        return $"'{elementName}.{attributeName}' must be a string value.";        
+    }
+
+    public static void Print(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        string oneIndent = "  ";
+        string indent = "  ";
+        string lineNumber;
+        string characterNumber;
+        //string writeNext;
+        StackTrace stackTrace = new StackTrace(true);
+        Console.WriteLine("Please note:");
+        Console.ResetColor();
+        Console.WriteLine($"{indent}{message}");
+        foreach(StackFrame frame in stackTrace.GetFrames())
+        {
+            indent = indent + oneIndent;
+            if(frame.GetFileLineNumber() == 0)
+            {
+                lineNumber = "'not determined'";
+            }
+            else
+            {
+                lineNumber = Convert.ToString(frame.GetFileLineNumber());
+            }
+            if(frame.GetFileColumnNumber() == 0)
+            {
+                characterNumber = "not determined";
+            }
+            else
+            {
+                characterNumber = Convert.ToString(frame.GetFileColumnNumber());
+            }
+            // writeNext = $"{indent}in file: {frame.GetFileName()}, in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.";
+            // foreach(char character in writeNext)
+            // {
+            //     if(character == '\n')
+            //     {
+            //         Console.Write($"character{indent}");
+            //     }
+            //     else
+            //     {
+            //         Console.Write(character);
+            //     }
+            // }
+            Console.WriteLine($"{indent}in file: {frame.GetFileName()}, in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
+        };
     }
 }
 
@@ -96,21 +108,14 @@ public class ElementStringMethods : DynamicObject
     public override bool TryGetMember(GetMemberBinder binder, out object? result)
     {
         result = 0;
-        try
+        if(elementStringMethods.TryGetValue(binder.Name, out Delegate? value))
         {
-            if(elementStringMethods.TryGetValue(binder.Name, out Delegate? value))
-            {
-                result = value;
-                return true;
-            }
-            else
-            {
-                throw new ElementStringMethodNotInS(binder.Name, invoke: false);
-            }
+            result = value;
+            return true;
         }
-        catch(ElementStringMethodNotInS exception)
+        else
         {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+            WarningMessage.Print(WarningMessage.ElementStringMethodNotInS(elementName: binder.Name, invoke: false));
         }
         return false;
     }
@@ -125,22 +130,15 @@ public class ElementStringMethods : DynamicObject
     public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result)
     {
         result = 0;
-        try
+        if(elementStringMethods.TryGetValue(binder.Name, out Delegate method))
         {
-            if(elementStringMethods.TryGetValue(binder.Name, out Delegate method))
-            {
-                //del.DynamicInvoke(args);
-                result = method.DynamicInvoke(args);
-                return true;
-            }
-            else
-            {
-                throw new ElementStringMethodNotInS(binder.Name, invoke: true);
-            }
+            //del.DynamicInvoke(args);
+            result = method.DynamicInvoke(args);
+            return true;
         }
-        catch(ElementStringMethodNotInS exception)
+        else
         {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+            WarningMessage.Print(WarningMessage.ElementStringMethodNotInS(elementName: binder.Name, invoke: true));
         }
         return false;
     }
@@ -153,22 +151,14 @@ public class ElementInstances : DynamicObject
     public override bool TryGetMember(GetMemberBinder binder, out object? element)
     {
         element = null;
-        try
+        if(elementInstances.TryGetValue(binder.Name, out dynamic? result))
         {
-            if(elementInstances.TryGetValue(binder.Name, out dynamic? result))
-            {
-                element = result;
-                return true;
-            }
-            else
-            {
-                throw new ElementInstanceNotInE(binder.Name);
-            }
-            
+            element = result;
+            return true;
         }
-        catch(ElementInstanceNotInE exception)
+        else
         {
-            Console.WriteLine($"{exception.message}\nAt: {exception.StackTrace}.");
+            WarningMessage.Print(WarningMessage.ElementNotInE(elementName: binder.Name));
         }
         return false;
     }
@@ -183,11 +173,11 @@ public class ElementInstances : DynamicObject
 
 class HtmlElement : DynamicObject
 {
-    protected bool isVoidElement;
-    protected string name;
-    protected string type;
+    public bool isVoidElement;
+    public string name;
+    public string type;
     protected string openingString;
-    protected string js;
+    public string js;
     protected string closingString;
 
     public delegate string BuildElementString(string nested = "");
@@ -198,6 +188,49 @@ class HtmlElement : DynamicObject
 
     public override bool TrySetMember(SetMemberBinder binder, object? value)
     {
+        string newValue = "";       
+        try
+        {
+            newValue = Convert.ToString(value);
+        }
+        catch(Exception ex)
+        {
+            WarningMessage.Print(WarningMessage.TryingToSetAttributeToNonStringValue(attributeName: binder.Name.ToLower(), elementName: this.name));
+        }
+
+        if(value.GetType() != typeof(String))
+        {
+            return false;
+        }
+        else
+        {
+            if(elementAttributes.TryGetValue(binder.Name.ToLower(), out string? result))
+            {
+                if(result.Length < newValue.Length)
+                {
+                    for(int i = 0; i < newValue.Length - result.Length; i++)
+                    {
+                        if(newValue.Substring(i, result.Length) == result)
+                        {
+                            elementAttributes[binder.Name.ToLower()] = newValue;
+                            OpeningString();
+                            BuildElementStringMethod();
+                            AddStringMethodToElementStringMethods();
+                            return true;
+                        }
+                    }
+                }
+                if(result != newValue)
+                {
+                    elementAttributes[binder.Name.ToLower()] = newValue;
+                    OpeningString();
+                    BuildElementStringMethod();
+                    AddStringMethodToElementStringMethods();
+                    WarningMessage.Print(WarningMessage.AttributeValueOverwrittenNotice(elementName: this.name, attributeName: binder.Name.ToLower()));
+                    return true;
+                }
+            }
+        }
         elementAttributes[binder.Name.ToLower()] = Convert.ToString(value);
         OpeningString();
         BuildElementStringMethod();
@@ -208,21 +241,14 @@ class HtmlElement : DynamicObject
     public override bool TryGetMember(GetMemberBinder binder, out object? result)
     {
         result = null;
-        try
+        if(elementAttributes.TryGetValue(binder.Name.ToLower(), out string? value))
         {
-            if(elementAttributes.TryGetValue(binder.Name.ToLower(), out string? value))
-            {
-                result = value;
-                return true;
-            }
-            else
-            {
-                throw new AttributeNotSet(binder.Name);
-            }
+            result = value;
+            return true;
         }
-        catch(AttributeNotSet exception)
+        else
         {
-            Console.WriteLine($"{exception.description}\nAt: {exception.StackTrace}, at {exception.TargetSite}.");
+            WarningMessage.Print(WarningMessage.AttributeNotSet(elementName: this.name, attributeName: binder.Name.ToLower()));
         }
         return true;
     }
@@ -293,7 +319,12 @@ class HtmlElement : DynamicObject
 
     private void MakeJsFile()
     {
-
+        Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}/JsAndCss/{this.name}");
+        if(File.Exists($"{Directory.GetCurrentDirectory()}/JsAndCss/{this.name}/Js.js") == false)
+        {
+            StreamWriter writer = new StreamWriter(Directory.GetCurrentDirectory() + $"/JsAndCss/{this.name}/{this.name}.js");
+        }
+        
     }
 
     private void MakeCssFile()
@@ -305,7 +336,12 @@ class HtmlElement : DynamicObject
     {
         this.type = type;
         this.isVoidElement = isVoid;
-        this.name = name;
+        this.name = $"{Regex.Replace(name, @"[^a-z^A-Z^0-9]", "")}";
+        if(this.name != name)
+        {
+            WarningMessage.Print(WarningMessage.ChangedElementName(this.name));
+        }
+        
         int voidIndex = Types.elementTypesList.Length;
         for(int i = 0; i < Types.elementTypesList.Length; i++)
         {
@@ -451,15 +487,16 @@ public class NewElement
 {
     public static void Element(string name, bool isVoid, string type)
     {
-        if(Program.E.elementInstances.TryGetValue(name.ToLower(), out object? result))
+        string newName = $"{Regex.Replace(name, @"[^a-z^A-Z^0-9]", "")}";
+        if(newName != name)
         {
-            throw new ElementAllreadyExists(name);
+            WarningMessage.Print(WarningMessage.ChangedElementName(name: name));
         }
-        else
+        if(Program.E.elementInstances.TryGetValue(newName, out object? result))
         {
-            Program.E.elementInstances[name.ToLower()] = new HtmlElement(name: name, isVoid: isVoid, type: type);
+            WarningMessage.Print(WarningMessage.ElementAllreadyExists(newName));
         }
-       
+        Program.E.elementInstances[newName] = new HtmlElement(name: newName, isVoid: isVoid, type: type);
     }
 
     public static void Div(string name, bool isVoid = false, string type = "div")
@@ -727,20 +764,13 @@ public class Program
     
     public static void Main()
     {
-        try
-        {
-            NewElement.Div("house");
-            E.house.style = "color: red";
-            E.house.Style = "color:";
-            E.house.style = E.house.style + " blue";
-            NewElement.Img("mac");
-            NewElement.Div("house");
-            E.mac.source = "\"a picture of Mac\"";
-            Console.WriteLine(S.house(S.mac("a nested string")));
-        }
-        catch(CustomException exception)
-        {
-            Console.WriteLine(exception.description + exception.StackTrace);
-        }
+        NewElement.Div("hou/se");
+        NewElement.Div("house");
+        E.house.style = "color: red";
+        E.house.Style = "color:";
+        E.house.style = E.house.style + " blue";
+        NewElement.Img("mac");
+        E.mac.source = "\"a picture of Mac\"";
+        Console.WriteLine(S.house(S.mac("a nested string")));    
     }
 }
