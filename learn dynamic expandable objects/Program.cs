@@ -262,7 +262,7 @@ class HtmlElement : DynamicObject
             {
                 if(this.isVoidElement == false)
                 {
-                    this.js = $"<script>{value}</script>";
+                    this.js = value;
                 }
                 else
                 {
@@ -298,7 +298,7 @@ class HtmlElement : DynamicObject
         }
         else
         {
-            this.Build = (string nested = "") => { return $"{this.openingString}{nested}{this.js}{this.closingString}"; };
+            this.Build = (string nested = "") => { return $"{this.openingString}{nested}<script>{this.js}</script>{this.closingString}"; };
         }
     }
 
