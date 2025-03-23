@@ -95,7 +95,7 @@ public class WarningMessage
             //         Console.Write(character);
             //     }
             // }
-            Console.WriteLine($"{indent}in file: {frame.GetFileName()}, in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
+            Console.WriteLine($"{indent}in file: {frame.GetFileName()},\n{indent}in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
         };
     }
 }
@@ -320,7 +320,7 @@ class HtmlElement : DynamicObject
     private void MakeJsFile()
     {
         Directory.CreateDirectory($"{Directory.GetCurrentDirectory()}/JsAndCss/{this.name}");
-        if(File.Exists($"{Directory.GetCurrentDirectory()}/JsAndCss/{this.name}/Js.js") == false)
+        if(File.Exists($"{Directory.GetCurrentDirectory()}/JsAndCss/{this.name}/{this.name}.js") == false)
         {
             StreamWriter writer = new StreamWriter(Directory.GetCurrentDirectory() + $"/JsAndCss/{this.name}/{this.name}.js");
         }
@@ -500,12 +500,16 @@ public class NewElement
     }
 
     public static void Div(string name, bool isVoid = false, string type = "div")
-    {
-       
+    {      
         Element(name: name, isVoid: isVoid, type: type);
     }
 
     public static void P(string name, bool isVoid = false, string type = "p")
+    {
+        Element(name: name, isVoid: isVoid, type: type);
+    }
+
+    public static void Strong(string name, bool isVoid = false, string type = "strong")
     {
         Element(name: name, isVoid: isVoid, type: type);
     }
