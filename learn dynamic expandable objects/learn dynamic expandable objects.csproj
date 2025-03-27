@@ -6,6 +6,7 @@
     <RootNamespace>learn_dynamic_expandable_objects</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EmbeddedLsp>true</EmbeddedLsp>
   </PropertyGroup>
 
 </Project>
