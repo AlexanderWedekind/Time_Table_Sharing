@@ -64,39 +64,59 @@ public class WarningMessage
         Console.WriteLine("Please note:");
         Console.ResetColor();
         Console.WriteLine($"{indent}{message}");
-        foreach(StackFrame frame in stackTrace.GetFrames())
+        indent = indent + oneIndent;
+        StackFrame[] stackFrames = stackTrace.GetFrames();
+        StackFrame frame = stackFrames[stackFrames.Length - 1];
+        if(frame.GetFileLineNumber() == 0)
         {
-            indent = indent + oneIndent;
-            if(frame.GetFileLineNumber() == 0)
-            {
-                lineNumber = "'not determined'";
-            }
-            else
-            {
-                lineNumber = Convert.ToString(frame.GetFileLineNumber());
-            }
-            if(frame.GetFileColumnNumber() == 0)
-            {
-                characterNumber = "not determined";
-            }
-            else
-            {
-                characterNumber = Convert.ToString(frame.GetFileColumnNumber());
-            }
-            // writeNext = $"{indent}in file: {frame.GetFileName()}, in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.";
-            // foreach(char character in writeNext)
-            // {
-            //     if(character == '\n')
-            //     {
-            //         Console.Write($"character{indent}");
-            //     }
-            //     else
-            //     {
-            //         Console.Write(character);
-            //     }
-            // }
-            Console.WriteLine($"{indent}in file: {frame.GetFileName()},\n{indent}in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
-        };
+            lineNumber = "'not determined'";
+        }
+        else
+        {
+            lineNumber = Convert.ToString(frame.GetFileLineNumber());
+        }
+        if(frame.GetFileColumnNumber() == 0)
+        {
+            characterNumber = "not determined";
+        }
+        else
+        {
+            characterNumber = Convert.ToString(frame.GetFileColumnNumber());
+        }
+        Console.WriteLine($"{indent}in file: {frame.GetFileName()},\n{indent}in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
+        // foreach(StackFrame frame in stackTrace.GetFrames())
+        // {
+        //     indent = indent + oneIndent;
+        //     if(frame.GetFileLineNumber() == 0)
+        //     {
+        //         lineNumber = "'not determined'";
+        //     }
+        //     else
+        //     {
+        //         lineNumber = Convert.ToString(frame.GetFileLineNumber());
+        //     }
+        //     if(frame.GetFileColumnNumber() == 0)
+        //     {
+        //         characterNumber = "not determined";
+        //     }
+        //     else
+        //     {
+        //         characterNumber = Convert.ToString(frame.GetFileColumnNumber());
+        //     }
+        //     // writeNext = $"{indent}in file: {frame.GetFileName()}, in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.";
+        //     // foreach(char character in writeNext)
+        //     // {
+        //     //     if(character == '\n')
+        //     //     {
+        //     //         Console.Write($"character{indent}");
+        //     //     }
+        //     //     else
+        //     //     {
+        //     //         Console.Write(character);
+        //     //     }
+        //     // }
+        //     Console.WriteLine($"{indent}in file: {frame.GetFileName()},\n{indent}in: {frame.GetMethod().Name}, at line: {lineNumber}, at character: {characterNumber}.");
+        // };
     }
 }
 
@@ -483,7 +503,7 @@ class HtmlElement : DynamicObject
 //     }
 // }
 
-public class NewElement
+public class NewE
 {
     public static void Element(string name, bool isVoid, string type)
     {
@@ -768,12 +788,12 @@ public class Program
     
     public static void Main()
     {
-        NewElement.Div("hou/se");
-        NewElement.Div("house");
+        NewE.Div("hou/se");
+        NewE.Div("house");
         E.house.style = "color: red";
         E.house.Style = "color:";
         E.house.style = E.house.style + " blue";
-        NewElement.Img("mac");
+        NewE.Img("mac");
         E.mac.source = "\"a picture of Mac\"";
         Console.WriteLine(S.house(S.mac("a nested string")));    
     }
