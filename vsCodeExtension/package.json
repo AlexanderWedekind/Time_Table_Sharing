@@ -1,19 +1,18 @@
 {
   "name": "embeddedlsp",
-  "version": "1.0.0",
+  "version": "1.0.7",
   "publisher": "A.Wedekind",
   "engines": {
     "vscode": "^1.96.3"
   },
   "activationEvents": [
-    "onCommand:commandId",
-    "workspaceContains:{*.csproj, **/*.csproj}"
+    "onCommand:JsAndCssInC#.startEmbeddedLsp"
   ],
   "description": "embedded js and css in c# language features",
   "main": "embeddedLsp.js",
   "contributes": {
     "commands": [{
-      "command": "JsAndCssInC#.startEmbeddedLsp",
+      "command": "JsAndCssInCsharp.startEmbeddedLsp",
       "title": "startEmbeddedLsp"
     }]
   },
