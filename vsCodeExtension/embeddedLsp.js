@@ -1,132 +1,196 @@
 const vscode =  require("vscode");
+const childProcess = require("child_process");
+const rpc = require("vscode-jsonrpc");
+const path = require("path");
 
-//let context = vscode.ExtensionContext;
+let myOutputs;
+let text = "";
+let newText = "";
 
-// async function embeddedLspNeeded()
-// {
-//     const files = await vscode.workspace.findFiles("**/*.csproj");
 
-//     for(file in files)
-//     {
-//         let filePath = file.fsPath;
-//         content = fs.readFileSync(filePath);
 
-//         if(content.includes("<EmbeddedLsp>true</EmbeddedLsp>"))
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-//""""
-// here is the first code snippet
-//""""
-function activate(context)
-{
-    //vscode.window.showInformationMessage("embeddedLsp activated at workspace opening");
-    //let run = false;
-    //run = await embeddedLspNeeded();
+async function getCurrentText() {
+    const currentText = await vscode.window.activeTextEditor.document.getText();
+    return currentText;
+}
 
-    // if(run)
-    // {
-    //     vscode.window.showInformationMessage("embeddedLsp ready to recieve start command");
-    // }
-    // else
-    // {
-    //     vscode.window.showInformationMessage("embeddedLsp will not run; no ' <EmbeddedLsp>true</EmbeddedLsp> ' field found in ' *.csproj '");
-    // }
+class snippet {
+    constructor(start, text, end){
+        this.start = start;
+        this.text = text;
+        this.end = end;
+    }   
+}
 
-    function handleRequests()
-    {
-        let myOutputs = vscode.window.createOutputChannel("embeddedLsp output");
-        myOutputs.show();
-        var extensionTerminal = vscode.window.createTerminal("extension terminal");
-        extensionTerminal.show(true);
-        vscode.window.showInformationMessage(`embeddedLsp terminal is called: ${extensionTerminal.name}`);
-        let text = vscode.window.activeTextEditor.document.getText();
-        myOutputs.appendLine(typeof text);
-        let codeSnippets = [];
-        let snippetSearchCompleted = false;
-        let preSnippetBoundaryStringIndex = 0;
-        let postSnippetBoundaryStringIndex = 0;
-        
-        do{
-            preSnippetBoundaryStringIndex = text.indexOf("\"\"\"\"", preSnippetBoundaryStringIndex);
-            postSnippetBoundaryStringIndex = text.indexOf("\"\"\"\"", preSnippetBoundaryStringIndex + 1);
-            if(preSnippetBoundaryStringIndex > -1 && postSnippetBoundaryStringIndex > -1){
-                codeSnippets.push(text.substring(preSnippetBoundaryStringIndex + 4, postSnippetBoundaryStringIndex));
-                preSnippetBoundaryStringIndex = postSnippetBoundaryStringIndex + 1;
-            }else{
-                snippetSearchCompleted = true;
-            }
-        }while(snippetSearchCompleted == false);
+let activationCount = 1;
 
-        codeSnippets.forEach((snippet, index) => {myOutputs.appendLine(`Snippet ${index + 1}:\n${snippet}`);});
-        // let testString = "ladidadida";
-        // myOutputs.appendLine(`index: ${testString.indexOf("abcd")}`);
-        // function snippedExists(activeEditorText){
-        //     textToBeEvaluated = activeEditorText;
-        //     if(textToBeEvaluated.includes("\"\"\"\"")){
-        //         let firstIndex = textToBeEvaluated.indexOf("\"\"\"\"");
-        //         textToBeEvaluated = textToBeEvaluated.substring(firstIndex);
-        //         if(textToBeEvaluated.includes("\"\"\"\"")){
-        //             return true;
-        //         }
-        //         return false;
-        //     }
-        //     return false;
-        // }
 
-        // while(snippedExists(text)){
-        //     let firstIndex = text.indexOf("\"\"\"\"");
-        //     text = text.substring(firstIndex + 4);
-        //     let secondIndex = text.substring("\"\"\"\"");
-        //     let newSnippet = text.substring(0, secondIndex);
-        //     snippets.push(newSnippet);
-        //     text = text.substring(secondIndex + 4);
-        // }
-        // for(i = 0; i < snippets.length; i++){
-        //     extensionTerminal.sendText(snippets[i], false);
-        //     console.log(snippets[i]);
-        // }
-        // let textLines = text.split("\n");
-        // for(line in textLines)
-        // {
-        //     for(char in line)
-        //     {
-        //         if(char == "\n"){
-        //             char = "";
-        //         }
-        //     }
-        //     extensionTerminal.sendText(line, false);
-        // };
-        // //vscode.window.activeTerminal.sendText(text, false);
-        //vscode.window.showInformationMessage(vscode.window.activeTextEditor.document.getText());
-        
-        // while(true)
-        // {
+async function doCompletions() {
+    text = await getCurrentText();
+    let codeSnippets = [];
+    let snippetSearchCompleted = false;
+    let preSnippetBoundaryStringIndex = 0;
+    let postSnippetBoundaryStringIndex = 0;
+    
+    do{
+        preSnippetBoundaryStringIndex = text.indexOf("\"\"\"\"", preSnippetBoundaryStringIndex);
+        postSnippetBoundaryStringIndex = text.indexOf("\"\"\"\"", preSnippetBoundaryStringIndex + 1);
+        if(preSnippetBoundaryStringIndex > -1 && postSnippetBoundaryStringIndex > -1){
+            codeSnippets.push(new snippet(preSnippetBoundaryStringIndex + 1, text.substring(preSnippetBoundaryStringIndex + 4, postSnippetBoundaryStringIndex), postSnippetBoundaryStringIndex));
+            preSnippetBoundaryStringIndex = postSnippetBoundaryStringIndex + 1;
+        }else{
+            snippetSearchCompleted = true;
+        }
+    }while(snippetSearchCompleted == false);
 
-            
-        // }
+    codeSnippets.forEach((snippet, index) => {myOutputs.appendLine(`\n-- Snippet ${index + 1} --\nStart index: ${snippet.start}\n-----\nText:\n-----\n${snippet.text}\n-----\nEnd index (exclusive): ${snippet.end}\n-----`);});
+    myOutputs.appendLine(`-- count: ${activationCount} --`);
+    activationCount++;
+}
+
+
+async function handleRequests(){
+    myOutputs = vscode.window.createOutputChannel("embeddedLsp output");
+    myOutputs.show();
+    var extensionTerminal = vscode.window.createTerminal("extension terminal");
+    extensionTerminal.show(true);
+    vscode.window.showInformationMessage(`embeddedLsp terminal is called: ${extensionTerminal.name}`);
+
+    myOutputs.appendLine(`-- process.cwd():\n${process.cwd()}\n`);
+    myOutputs.appendLine(`-- vscode approot:\n${vscode.env.appRoot}\n`);
+    myOutputs.appendLine(`-- __dirname:\n${__dirname}\n`);
+
+    const serverPath = path.join(
+        __dirname,
+        "node_modules",
+        "typescript-language-server",
+        "lib",
+        "cli.mjs"
+    );
+
+    //let testPath = `${__dirname}/node_modules/typescript/lib/tsserver.js`;
+
+    myOutputs.appendLine(`-- serverpath:\n${serverPath}\n`);
+
+    let languageServer;
+    let connection;
+
+    
+    try {
+        languageServer = childProcess.spawn("node", [serverPath, "--stdio"], {stdio: "pipe"});
+        languageServer.on("exit", (code, signal) => {
+            myOutputs.appendLine(`\n-- Tsserver exit:\ncode: ${code}\nsignal: ${signal}\n-- End --`);
+        });
+        languageServer.stderr.on("data", (data) => {
+            myOutputs.appendLine(`\n-- Tsserver stderr:\ndata: ${data.toString()}\n-- End --`);
+        });
+        languageServer.stdout.on("data", (data) => {
+            myOutputs.appendLine(`\n-- Tsserver stdout:\ndata: ${data.toString()}\n-- End --`);
+        });
+    }catch(error) {
+        myOutputs.appendLine(`\n-- START LANGUAGE SERVER AS CHILD-PROCESS ERROR:\n${error.message}\n-- End --`);
     }
 
-    const startUpCommand = "JsAndCssInCsharp.startEmbeddedLsp";
+    try {
+        myOutputs.appendLine(`\n-- RPC MESSAGE CONNECTION ABOUT TO RUN --`)
+        connection = rpc.createMessageConnection(
+            new rpc.StreamMessageReader(languageServer.stdout),
+            new rpc.StreamMessageWriter(languageServer.stdin)
+        );
+        myOutputs.appendLine(`\n-- RPC CREATE MESSAGE CONNECTION RAN --`);
 
-    const runOnStartupCommand = () => {
-        let run = true;
-        if(run){
-            vscode.window.showInformationMessage("embeddedLsp [1.0.7] is running");
-            handleRequests();
-        }
-        else
-        {
-            vscode.window.showInformationMessage("embeddedLsp will not run; no ' <EmbeddedLsp>true</EmbeddedLsp> ' field found in ' *.csproj '");
-        }
-        //""""
-        // and the second code snippet
-        //""""
+    }catch(error) {
+        myOutputs.appendLine(`\n-- CREATE RPC MESSAGE CONNECTION ERROR:\n${error.message}\n-- End --`);
+    }
 
+    try {
+        myOutputs.appendLine(`\n-- CONNECTION.LISTEN ABOUT TO RUN --`);
+        connection.listen();
+        myOutputs.appendLine(`\n-- CONNECTION.LISTEN RAN --`);
+    }catch(error) {
+        myOutputs.appendLine(`\n-- CONNECTION LISTEN ERROR:\n${error.message}\n-- End --`);
+    }
+    const languageSErverInitializationParams = {
+        processId: process.pid,
+        rootUri: null,
+        capabilities: {
+            textDocument: {
+                publishDiagnostics: {},
+                hover: {},
+                completion: {
+                    completionItem: {
+                        snippetSupport: true
+                    }
+                },
+                signatureHelp: {},
+                documentHighlight: {},
+                documentSymbol: {},
+                formatting: {},
+                onTypeFormatting: {},
+                definition: {},
+                references: {}
+            }
+        },
+        initializationOptions: {},
+        workspaceFolders: null,
+        trace: "off"
     };
+
+    let serverInitializeResponse;
+
+    try {
+        myOutputs.appendLine(`\n-- serverInitializeResponse:\n${serverInitializeResponse}\n-- SEND REQUEST 'INITIALIZE' ABOUT TO RUN --\n`)
+        serverInitializeResponse = await connection.sendRequest("initialize", languageSErverInitializationParams);
+        myOutputs.appendLine(`\n-- SEND REQUEST 'INITIALIZE' RAN --`);
+    }catch(error) {
+        myOutputs.appendLine(`\n-- SEND SERVER INITIALIZE MESSAGE ERROR:\nError: ${error}\nError message: ${error.message}\n-- End --`);
+    }
+    
+    myOutputs.appendLine(`\n-- Server initialize response:\n"${JSON.stringify(serverInitializeResponse)}\n-- End of response --`);
+
+    doCompletions();
+    //text = vscode.window.activeTextEditor.document.getText();
+    vscode.workspace.onDidChangeTextDocument(() => {
+        (async() => {
+            newText = await getCurrentText();
+            if(newText != text){
+                try{
+                doCompletions();
+                }catch(error){
+                    myOutputs.appendLine(`\n-- 'doCompletions()' Error:\n${error.message}\n-- End --`);
+                }
+            }
+            
+        })();
+    });
+}
+
+const startUpCommand = "JsAndCssInCsharp.startEmbeddedLsp";
+
+const runOnStartupCommand = () => {
+    let run = true;
+    if(run){
+        vscode.window.showInformationMessage("embeddedLsp [1.0.7] is running");
+        handleRequests();
+    }
+    else
+    {
+        vscode.window.showInformationMessage("embeddedLsp will not run; no ' <EmbeddedLsp>true</EmbeddedLsp> ' field found in ' *.csproj '");
+    }
+    //""""
+    // and the second code snippet
+    //""""
+
+};
+
+
+function activate(context)
+{
+    // """"
+    // the first code snippet
+    // """"
+    
+    
 
     
     context.subscriptions.push(vscode.commands.registerCommand(startUpCommand, runOnStartupCommand));

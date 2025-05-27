@@ -11,10 +11,12 @@
   "description": "embedded js and css in c# language features",
   "main": "embeddedLsp.js",
   "contributes": {
-    "commands": [{
-      "command": "JsAndCssInCsharp.startEmbeddedLsp",
-      "title": "startEmbeddedLsp"
-    }]
+    "commands": [
+      {
+        "command": "JsAndCssInCsharp.startEmbeddedLsp",
+        "title": "startEmbeddedLsp"
+      }
+    ]
   },
   "scripts": {
     "test": "test"
@@ -23,5 +25,11 @@
   "license": "MIT",
   "devDependencies": {
     "vscode": "^1.1.37"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "typescript": "^5.8.3",
+    "typescript-language-server": "^4.3.4",
+    "vscode-jsonrpc": "^8.2.1"
   }
 }
