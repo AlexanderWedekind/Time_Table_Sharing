@@ -281,18 +281,18 @@ async function activate(context)
 
         newText.forEach((thisLine) => {
             
-            myOutputs.appendLine(`\n-- LINENUMBER: ${currentLineNumber + 1} --`);
-            myOutputs.appendLine(`this Line:\n${thisLine}`);
-            myOutputs.appendLine(`line-length: ${thisLine.length}`);
-            myOutputs.appendLine(`nr of boundary strings found: ${boundaryStringsFound}`);
+            // myOutputs.appendLine(`\n-- LINENUMBER: ${currentLineNumber + 1} --`);
+            // myOutputs.appendLine(`this Line:\n${thisLine}`);
+            // myOutputs.appendLine(`line-length: ${thisLine.length}`);
+            // myOutputs.appendLine(`nr of boundary strings found: ${boundaryStringsFound}`);
             boundaryStringIndex = -1;
             do{
                 boundaryStringIndex ++;
                 boundaryStringIndex = thisLine.indexOf("\"\"\"\"", boundaryStringIndex);
                 if(boundaryStringIndex > -1){
                     boundaryStringsFound ++;
-                    myOutputs.appendLine(`boundary string index: ${boundaryStringIndex}`);
-                    myOutputs.appendLine(`string found: " ${thisLine.substring(boundaryStringIndex, boundaryStringIndex + 4)} "`);
+                    //myOutputs.appendLine(`boundary string index: ${boundaryStringIndex}`);
+                    //myOutputs.appendLine(`string found: " ${thisLine.substring(boundaryStringIndex, boundaryStringIndex + 4)} "`);
                     if(boundaryStringsFound == 1){
                         snippetRange.start.line = 1; 
                         snippetRange.start.character = 0;
@@ -313,7 +313,7 @@ async function activate(context)
                         documentSegmentList.getLastSegment().next = new Snippet("typescript", snippetRange);
                     }
                 }else{
-                    myOutputs.appendLine("no additional boundary string found");
+                    //myOutputs.appendLine("no additional boundary string found");
                     snippetSearchCompleted = true;
                     if(currentLineNumber == newText.length - 1 && boundaryStringsFound > 0){
                         snippetRange.start.line = snippetRange.end.line;
@@ -326,7 +326,7 @@ async function activate(context)
             }while(snippetSearchCompleted == false);
             snippetSearchCompleted = false;
             currentLineNumber ++;
-            myOutputs.appendLine(`-- END --`);
+            //myOutputs.appendLine(`-- END --`);
             
         });
     };
