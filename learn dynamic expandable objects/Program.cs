@@ -788,11 +788,17 @@ public class Program
     
     public static void Main()
     {
+        // """"
+        // a snippet 
+        // """"
         NewE.Div("hou/se");
         NewE.Div("house");
         E.house.style = "color: red";
         E.house.Style = "color:";
         E.house.style = E.house.style + " blue";
+        E.house.js = """"
+        letso ====;   
+        """";
         NewE.Img("mac");
         E.mac.source = "\"a picture of Mac\"";
         Console.WriteLine(S.house(S.mac("a nested string")));    
