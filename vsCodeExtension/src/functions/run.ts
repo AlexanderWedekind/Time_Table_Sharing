@@ -6,8 +6,9 @@ import { output, write } from '../setupLogic/createTerminal';
 
 function run(){
     functions.targetCurrentDoc();
+    write(output("Doc Uri", `${functions.giveCurrentDocUri()}\r\n${output("Doc Uri", functions.giveCurrentDocUri())}`));
     //write(output("Doc uri", functions.giveCurrentDocUri()));
-    write(output("TEST", "indented"))
+    //write(output("TEST", "indented"))
 }
 
 export {
