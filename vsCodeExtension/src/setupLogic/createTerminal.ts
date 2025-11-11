@@ -47,7 +47,7 @@ const output = (title: string, data: string): string => {
         dataReturnString = dataReturnString + indent + line + "\r\n";
     }
     
-    return `-- ${title}: --\r\n${dataReturnString}\r\n-- End --`
+    return `\n-- ${title}: --\r\n${dataReturnString}-- End --`
 };
 
 const write = (output: string = "") => {

@@ -1,6 +1,6 @@
 {
   "name": "embeddedlsp",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "publisher": "A.Wedekind",
   "engines": {
     "vscode": "^1.96.3"
