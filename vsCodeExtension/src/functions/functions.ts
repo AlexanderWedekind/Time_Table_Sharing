@@ -4,12 +4,12 @@ import { write, output } from '../setupLogic/createTerminal';
 
 
 function targetCurrentDoc(): void{
-    vars.currentDocUri = vscode.window.activeTextEditor?.document.uri;
+    vars.currentTargetDoc = vscode.window.activeTextEditor?.document;
 };
 
 function giveCurrentDocUri(): string {
-    if(vars.currentDocUri != undefined){
-        return vars.currentDocUri.toString();
+    if(vars.currentTargetDoc != undefined){
+        return vars.currentTargetDoc.uri.toString();
     }else{
         return "undefined";
     }
