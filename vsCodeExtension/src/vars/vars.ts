@@ -19,9 +19,9 @@ type SnippetType = "typescript" | "cSharp";
 
 type Vars = typeof vars;
 
-//type Segment = typeof vars.textSnippet;
+type Segment = typeof vars.textSnippet;
 
-//type SegmentListNode = null | TextSnippet;
+type SegmentListNode = null | TextSnippet;
 
 class TextSnippet {
         type: SnippetType
@@ -40,7 +40,7 @@ class TextSnippet {
         propertyEquals: Function
 
         constructor(type: SnippetType, range: Range){
-            if(type == "typescript"){
+            //if(type == "typescript"){
                 this.type = type;
                 this.range = range;
                 this.uri = (() => {
@@ -63,11 +63,11 @@ class TextSnippet {
                     let lineIndex = this.range.start.line;
                     do{
                         if(this.range.start.line == this.range.end.line){
-                            text = `${vars.currentText[lineIndex].substring(this.range.start.char, this.range.end.char)}`;
+                            text = `${vars.currentText[lineIndex].text.substring(this.range.start.char, this.range.end.char)}`;
                         }else if(lineIndex == this.range.start.line){
-                            text = `${text}${vars.currentText[lineIndex].substring(this.range.start.char)}`;
+                            text = `${text}${vars.currentText[lineIndex].text.substring(this.range.start.char)}`;
                         }else if(lineIndex == this.range.end.line){
-                            text = `${text}${vars.currentText[lineIndex].substring(0, this.range.end.char)}`;
+                            text = `${text}${vars.currentText[lineIndex].text.substring(0, this.range.end.char)}`;
                         }else if(lineIndex > this.range.start.line && lineIndex < this.range.end.line){
                             text = `${text}${vars.currentText[lineIndex]}`;
                         }
@@ -121,20 +121,18 @@ class TextSnippet {
                     );
                     return propertyFound;
                 }
-            }else if(type == "cSharp"){
-                this.type = type;
-                this.range = range;
-            }
+            // }else if(type == "cSharp"){
+            //     this.type = type;
+            //     this.range = range;
+            // }
         }
     }
 
 const vars = {
 
-    currentDocUri: vscode.window.activeTextEditor?.document.uri as vscode.Uri | undefined,
-
     currentTargetDoc: undefined as vscode.TextDocument | undefined,
 
-    currentText: [] as string[],
+    currentText: [] as vscode.TextLine[],
     
     tsServerPath: path.join(
         __dirname,
@@ -177,10 +175,10 @@ const vars = {
         trace: "off"
     },
 
-    // snippetType: {
-    //     typescript: "typescript",
-    //     cSharp: "c-sharp"
-    // },
+    snippetType: {
+        typescript: "typescript",
+        cSharp: "c-sharp"
+    },
     
     documentSegmentList: {
         head: null as null | TextSnippet,

@@ -39,8 +39,16 @@ connection.trace(jsonRpc.Trace.Verbose, {
     log: (msg) => write(output("RPC-TRACE: LOG", `${msg}`))
 });
 
-let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
-connection.sendNotification("initialized");
+async function sendInitializeRequest(): Promise<void> {
+    let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
+    connection.sendNotification("initialized");
+    write(output("Server initialize response", JSON.stringify(serverInitializeResponse)));
+}
+
+sendInitializeRequest();
+
+// let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
+// connection.sendNotification("initialized");
         
 
 // connection.onNotification("textDocument/publishDiagnostics", (result) => { 
