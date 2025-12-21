@@ -5,7 +5,7 @@ import * as jsonRpc from 'vscode-jsonrpc/node';
 import { vars } from '../vars/vars';
 import { write, output } from './createTerminal';
 
-const languageServer = childProcess.spawn("node", [vars.tsServerPath, "--stdio"], {stdio: ["pipe","pipe", "pipe"]});
+const languageServer = childProcess.spawn(vars.tsServerPath, ["--stdio"], {stdio: ["pipe","pipe", "pipe"]});
 languageServer.on("exit", (code, signal) => {
     write(output("Tsserver exit", `code:\n${code}\nsignal:\n${signal}`));
 });
@@ -39,13 +39,18 @@ connection.trace(jsonRpc.Trace.Verbose, {
     log: (msg) => write(output("RPC-TRACE: LOG", `${msg}`))
 });
 
-async function sendInitializeRequest(): Promise<void> {
+connection.listen();
+
+export async function sendInitializeRequest(): Promise<void> {
+    write("--> sendInitialize was called -> assigning response to 'serverInitializeResponse'");
     let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
+    write(`--> 'serverInitializeResponse' has been assigned: ${JSON.stringify(serverInitializeResponse)}`);
     connection.sendNotification("initialized");
+    write("--> notification 'initialized' sent to server")
     write(output("Server initialize response", JSON.stringify(serverInitializeResponse)));
 }
 
-sendInitializeRequest();
+//sendInitializeRequest();
 
 // let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
 // connection.sendNotification("initialized");

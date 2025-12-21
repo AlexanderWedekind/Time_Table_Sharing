@@ -16,9 +16,12 @@ export function activate(context: vscode.ExtensionContext){
     console.log("I should see this in the debug console");
     debugger;
     //term.write(term.output("Running!", `${name} version [${version}] is running`))
-    console.log("REGISTERED COMMANDS:", vscode.commands.getCommands())
+    term.write("REGISTERED COMMANDS:"
+        //vscode.commands.getCommands()
+    )
     const startCommand = "JsAndCssInCsharp.startEmbeddedLsp";
-    context.subscriptions.push(vscode.commands.registerCommand(startCommand, () => {console.log("START COMMAND INVOKED");run()}));
+    context.subscriptions.push(vscode.commands.registerCommand(startCommand, () => {term.write("START COMMAND INVOKED -> now attaching 'run'");run()}));
+    term.write("--> startcommand registered")
         const newTargetTextCommand = "JsAndCssInCsharp.targetNewDocument";
         context.subscriptions.push(vscode.commands.registerCommand(newTargetTextCommand, targetCurrentDoc));
         const quitCommand = "JsAndCssInCsharp.quitEmbeddedLsp";

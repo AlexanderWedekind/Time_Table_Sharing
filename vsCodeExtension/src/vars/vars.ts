@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Type } from 'typescript';
+import { write, output } from '../setupLogic/createTerminal';
 
 //type DocumentSegmentList = new Type
 
@@ -136,10 +137,11 @@ const vars = {
     
     tsServerPath: path.join(
         __dirname,
+        "..",
+        "..",
         "node_modules",
-        "typescript-language-server",
-        "lib",
-        "cli.mjs"
+        ".bin",
+        "typescript-language-server.cmd"
     ),
 
     cSharpServerPath: path.join(
