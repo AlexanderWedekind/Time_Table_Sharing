@@ -1,6 +1,6 @@
 {
   "name": "embeddedlsp",
-  "version": "1.0.63",
+  "version": "1.0.88",
   "publisher": "A.Wedekind",
   "engines": {
     "vscode": "^1.96.3"
@@ -32,7 +32,7 @@
     "package": "node ./scripts/package.js",
     "install": "node ./scripts/install.js",
     "clear-old-versions": "node ./scripts/delete-old-version-files.js",
-    "reload-vsc-window": "node ./scripts/reloadVscWindow",
+    "reload-vsc-window": "code --reuse-window --command workbench.action.reloadWindow",
     "patch-local": "npm run compile && npm version patch && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window",
     "minor-local": "npm run compile && npm version minor && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window",
     "mayor-local": "npm run compile && npm version mayor && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window"

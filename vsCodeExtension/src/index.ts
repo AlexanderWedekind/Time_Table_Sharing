@@ -22,10 +22,10 @@ export function activate(context: vscode.ExtensionContext){
     const startCommand = "JsAndCssInCsharp.startEmbeddedLsp";
     context.subscriptions.push(vscode.commands.registerCommand(startCommand, () => {term.write("START COMMAND INVOKED -> now attaching 'run'");run()}));
     term.write("--> startcommand registered")
-        const newTargetTextCommand = "JsAndCssInCsharp.targetNewDocument";
-        context.subscriptions.push(vscode.commands.registerCommand(newTargetTextCommand, targetCurrentDoc));
-        const quitCommand = "JsAndCssInCsharp.quitEmbeddedLsp";
-        context.subscriptions.push(vscode.commands.registerCommand(quitCommand, deactivate));
+    const newTargetTextCommand = "JsAndCssInCsharp.targetNewDocument";
+    context.subscriptions.push(vscode.commands.registerCommand(newTargetTextCommand, targetCurrentDoc));
+    const quitCommand = "JsAndCssInCsharp.quitEmbeddedLsp";
+    context.subscriptions.push(vscode.commands.registerCommand(quitCommand, deactivate));
 };
 
 export function deactivate(){
@@ -46,7 +46,7 @@ export function deactivate(){
                         term.myPseudoTermClose();
                         return "\npseudo terminal closed..."
                     }catch(error){
-                        return `\nfailed to disclose pseudo terminal\n${JSON.stringify(error)}`
+                        return `\nfailed to close pseudo terminal\n${JSON.stringify(error)}`
                     }
                 })()
             }`

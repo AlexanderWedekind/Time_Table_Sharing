@@ -5,48 +5,71 @@ import * as jsonRpc from 'vscode-jsonrpc/node';
 import { vars } from '../vars/vars';
 import { write, output } from './createTerminal';
 
-const languageServer = childProcess.spawn(vars.tsServerPath, ["--stdio"], {stdio: ["pipe","pipe", "pipe"]});
-languageServer.on("exit", (code, signal) => {
-    write(output("Tsserver exit", `code:\n${code}\nsignal:\n${signal}`));
-});
-languageServer.stderr.on("data", (data) => {
-    write(output("Tsserver stderr", `data:\n${data.toString()}`));
-});
-languageServer.stderr.on("error", (error) => {
-    write(output("Tsserver stream-error, stderr", `error:\n${error}`));
-});
+// try{
+//     write("...");
 
-const connection = jsonRpc.createMessageConnection(
-    new jsonRpc.StreamMessageReader(languageServer.stdout),
-    new jsonRpc.StreamMessageWriter(languageServer.stdin),
-    {
-        log: (message) => {
-            write(output("CONNECTION-MESSAGE: LOG", `${message}`));
-        },
-        info: (info) => {
-            write(output("CONNECTION-MESSAGE: INFO", `${info}`));
-        },
-        warn: (warning) => {
-            write(output("CONNECTION-MESSAGE: WARNING", `${warning}`));
-        },
-        error: (error) => {
-            write(output("CONNECTION-MESSAGE: ERROR", `${error}`));
+//     write("...");
+// }catch(e: unknown){
+//     if(typeof(e) == typeof(Error)){
+//         write(output("...", `Error:\n${e.message}`))
+//     }else{
+//         write(output("...", `Error:\n${JSON.stringify(e)}`))
+//     }
+// }
+
+export async function startTypescriptServer(){
+    vars.languageServer = childProcess.spawn(process.execPath, [vars.tsLanguageServerPath, "--stdio"], {stdio: ["pipe","pipe", "pipe"]});
+}
+
+export async function registerTsServerLoggingCallbacks(){
+    vars.languageServer?.on('exit', (code, signal) => {
+        write(output("TsServer Exit", `code:\n${code}\nsignal:\n${signal}`))
+    });
+    vars.languageServer?.stderr?.on('data', (data) => {
+        write(output("TsServer StdErr Data", `data:\n${data.toString()}`))
+    });
+    vars.languageServer?.stderr?.on("error", (error) => {
+        write(output("TsServer StdErr Error", `error:\n${error.message.toString()}`))
+    });
+}
+
+export async function setupJsonRpcConnection(){
+    vars.connection = jsonRpc.createMessageConnection(
+        new jsonRpc.StreamMessageReader(vars.languageServer?.stdout!),
+        new jsonRpc.StreamMessageWriter(vars.languageServer?.stdin!),
+        {
+            log: (message) => {
+                write(output("CONNECTION-MESSAGE: LOG", `${message}`));
+            },
+            info: (info) => {
+                write(output("CONNECTION-MESSAGE: INFO", `${info}`));
+            },
+            warn: (warning) => {
+                write(output("CONNECTION-MESSAGE: WARNING", `${warning}`));
+            },
+            error: (error) => {
+                write(output("CONNECTION-MESSAGE: ERROR", `${error}`));
+            }
         }
-    }
-);
+    );
+}
 
-connection.trace(jsonRpc.Trace.Verbose, {
-    log: (msg) => write(output("RPC-TRACE: LOG", `${msg}`))
-});
+export async function doConnectionTrace(){
+    vars.connection!.trace(jsonRpc.Trace.Verbose, {
+        log: (msg) => write(output("RPC-TRACE: LOG", `${msg}`))
+    });
+}
 
-connection.listen();
+export function connectionListen(){
+    vars.connection!.listen();
+}
 
-export async function sendInitializeRequest(): Promise<void> {
-    write("--> sendInitialize was called -> assigning response to 'serverInitializeResponse'");
-    let serverInitializeResponse = await connection.sendRequest("initialize", vars.languageServerInitializationParams);
-    write(`--> 'serverInitializeResponse' has been assigned: ${JSON.stringify(serverInitializeResponse)}`);
-    connection.sendNotification("initialized");
-    write("--> notification 'initialized' sent to server")
+export async function sendInitializeRequest(){
+    write("\r\n--> sendInitialize was called -> assigning response to 'serverInitializeResponse'");
+    let serverInitializeResponse = await vars.connection!.sendRequest("initialize", vars.languageServerInitializationParams);
+    write(`\r\n--> 'serverInitializeResponse' has been assigned: ${JSON.stringify(serverInitializeResponse)}`);
+    vars.connection!.sendNotification("initialized");
+    write("\r\n--> notification 'initialized' sent to server")
     write(output("Server initialize response", JSON.stringify(serverInitializeResponse)));
 }
 

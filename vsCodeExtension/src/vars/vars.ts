@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as childProcess from 'child_process';
+import * as jsonRpc from 'vscode-jsonrpc/node';
+import * as functions from '../functions/functions';
 import { Type } from 'typescript';
 import { write, output } from '../setupLogic/createTerminal';
 
@@ -26,7 +29,7 @@ type SegmentListNode = null | TextSnippet;
 
 class TextSnippet {
         type: SnippetType
-        range: Range
+        range: vscode.Range
         uri: string
         didOpen: boolean
         didChange: boolean
@@ -40,7 +43,7 @@ class TextSnippet {
         sendDidClose: Function
         propertyEquals: Function
 
-        constructor(type: SnippetType, range: Range){
+        constructor(type: SnippetType, range: vscode.Range){
             //if(type == "typescript"){
                 this.type = type;
                 this.range = range;
@@ -57,25 +60,33 @@ class TextSnippet {
                 })();
                 this.didOpen = false;
                 this.didChange = false;
-                this.languageId = "typescript";
-                this.version = 1;
-                this.text = (() => {
-                    let text = "";
-                    let lineIndex = this.range.start.line;
-                    do{
-                        if(this.range.start.line == this.range.end.line){
-                            text = `${vars.currentText[lineIndex].text.substring(this.range.start.char, this.range.end.char)}`;
-                        }else if(lineIndex == this.range.start.line){
-                            text = `${text}${vars.currentText[lineIndex].text.substring(this.range.start.char)}`;
-                        }else if(lineIndex == this.range.end.line){
-                            text = `${text}${vars.currentText[lineIndex].text.substring(0, this.range.end.char)}`;
-                        }else if(lineIndex > this.range.start.line && lineIndex < this.range.end.line){
-                            text = `${text}${vars.currentText[lineIndex]}`;
-                        }
-                        lineIndex ++;
-                    }while(lineIndex != this.range.end.line + 1); 
-                    return text;
+                this.languageId = (() => {
+                    let returnString = "";
+                    if(this.type == "typescript"){
+                        returnString = "typescript";
+                    }else{
+                        returnString = "cSharp";
+                    }
+                    return returnString;
                 })();
+                this.version = 1;
+                this.text = functions.getTextFromRange(range)//(() => {
+                //     let text = "";
+                //     let lineIndex = this.range.start.line;
+                //     do{
+                //         if(this.range.start.line == this.range.end.line){
+                //             text = `${vars.currentText[lineIndex].text.substring(this.range.start.char, this.range.end.char)}`;
+                //         }else if(lineIndex == this.range.start.line){
+                //             text = `${text}${vars.currentText[lineIndex].text.substring(this.range.start.char)}`;
+                //         }else if(lineIndex == this.range.end.line){
+                //             text = `${text}${vars.currentText[lineIndex].text.substring(0, this.range.end.char)}`;
+                //         }else if(lineIndex > this.range.start.line && lineIndex < this.range.end.line){
+                //             text = `${text}${vars.currentText[lineIndex]}`;
+                //         }
+                //         lineIndex ++;
+                //     }while(lineIndex != this.range.end.line + 1); 
+                //     return text;
+                // })();
                 this.next = null;
                 this.previous = null;
                 this.sendDidOpen = () => {
@@ -131,17 +142,22 @@ class TextSnippet {
 
 const vars = {
 
+    languageServer: null as childProcess.ChildProcess | null,
+
+    connection: null as jsonRpc.MessageConnection | null,
+
     currentTargetDoc: undefined as vscode.TextDocument | undefined,
 
     currentText: [] as vscode.TextLine[],
     
-    tsServerPath: path.join(
+    tsLanguageServerPath: path.join(
         __dirname,
         "..",
         "..",
         "node_modules",
-        ".bin",
-        "typescript-language-server.cmd"
+        "typescript-language-server",
+        "lib",
+        "cli.mjs"
     ),
 
     cSharpServerPath: path.join(
@@ -179,8 +195,8 @@ const vars = {
 
     snippetType: {
         typescript: "typescript",
-        cSharp: "c-sharp"
-    },
+        cSharp: "cSharp"
+    }as const,
     
     documentSegmentList: {
         head: null as null | TextSnippet,

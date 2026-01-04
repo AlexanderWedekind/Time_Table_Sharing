@@ -23,31 +23,38 @@ let myTerminal: vscode.Terminal | undefined = vscode.window.createTerminal({
 
 myTerminal.show(true);
 
-const output = (title: string, data: string): string => {
-    let dataArr: string[] = data.split('\n');
-    for(let line in dataArr){
-        dataArr[line] = dataArr[line].replace('\r', '');
-    };
+const output = (title: string, data: any): string => {
+    let dataArr: string[] = [];
     let returnDataArr: string[] = [];
     let dataReturnString: string = "";
     let indent: string = "    ";
     const lineLimit = termDims.columns - indent.length - 1;
     
-    for(const line of dataArr){
-        let thisLineArr: string[] = [];
-        thisLineArr[thisLineArr.length] = line;
-        while(thisLineArr[thisLineArr.length - 1].length > lineLimit){
-            thisLineArr[thisLineArr.length] = thisLineArr[thisLineArr.length - 1].substring(lineLimit + 1);
-            thisLineArr[thisLineArr.length - 1] = thisLineArr[thisLineArr.length - 1].substring(0, lineLimit + 1);
-        }
-        returnDataArr = returnDataArr.concat(thisLineArr);
-    }
+    if(typeof data == "string"){
+        dataArr = data.split('\n');
 
-    for(const line of returnDataArr){
-        dataReturnString = dataReturnString + indent + line + "\r\n";
+        for(let line in dataArr){
+            dataArr[line] = dataArr[line].replace('\r', '');
+        };
+        
+        for(const line of dataArr){
+            let thisLineArr: string[] = [];
+            thisLineArr[thisLineArr.length] = line;
+            while(thisLineArr[thisLineArr.length - 1].length > lineLimit){
+                thisLineArr[thisLineArr.length] = thisLineArr[thisLineArr.length - 1].substring(lineLimit + 1);
+                thisLineArr[thisLineArr.length - 1] = thisLineArr[thisLineArr.length - 1].substring(0, lineLimit + 1);
+            }
+            returnDataArr = returnDataArr.concat(thisLineArr);
+        }
+
+        for(const line of returnDataArr){
+            dataReturnString = dataReturnString + indent + line + "\r\n";
+        }
+    }else{
+        dataReturnString = "~ logging input was Not of type 'String' ~";
     }
     
-    return `\n-- ${title}: --\r\n${dataReturnString}-- End --`
+    return `\r\n-- ${title}: --\r\n${dataReturnString}-- End --`
 };
 
 const write = (output: string = "") => {

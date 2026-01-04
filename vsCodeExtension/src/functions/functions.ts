@@ -52,9 +52,51 @@ function refreshCurrentText(): void{
     }
 };
 
+function getTextLineRange(textLine: vscode.TextLine){
+    return textLine.range
+}
+
+function getTextFromRange(range: vscode.Range): string{
+    let text = "";
+    if(vars.currentTargetDoc != undefined){
+        text = vars.currentTargetDoc.getText(range);
+    }
+    return text;
+}
+
+function identifySnippets(){
+    vars.currentText.forEach(textLine => {
+        if(textLine.isEmptyOrWhitespace == false){
+            let text = textLine.text;
+            if(text.includes('""""')){
+                write(output("Snippet Boundary Found",
+                    `line:\n
+                    ${text}\n
+                    lineNr:\n
+                    ${textLine.lineNumber}\n
+                    snippet boundary index:\n
+                    ${text.indexOf('""""')}\n
+                    boundary string:\n
+                    ${text.substring(text.indexOf('""""'), text.indexOf('""""') + 4)}`
+                ));
+                if(vars.documentSegmentList.head == null){
+                    let range = new vscode.Range(
+                        new vscode.Position(0, 0),
+                        new vscode.Position(textLine.lineNumber, text.indexOf('""""'))
+                    );
+                    vars.documentSegmentList.head = new vars.textSnippet(vars.snippetType.cSharp, range);
+                }
+            }
+        }
+    });
+}
+
 
 export{
+    getTextLineRange,
     targetCurrentDoc,
     giveCurrentDocUri,
-    refreshCurrentText
+    refreshCurrentText,
+    identifySnippets,
+    getTextFromRange
 }
