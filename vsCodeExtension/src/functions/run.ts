@@ -85,22 +85,29 @@ async function run(){
         )
     )
 
-    functions.refreshCurrentText();
-    functions.identifySnippets();
+    functions.createDocumentModelAtStartup();
     write(output(
-        "Document Segment List - Head",
-        `head:\n
-        ${(() => {
-            let returnString = "";
-            let head = vars.documentSegmentList.getLastSegment();
-            if(head == null){
-                returnString = "nothing found";
-            }else{
-                returnString = JSON.stringify(head);
-            }
-            return returnString;
+        "Document Model",
+        `${(() => {
+            
         })()}`
     ))
+
+    // functions.identifySnippets();
+    // write(output(
+    //     "Document Segment List - Head",
+    //     `head:\n
+    //     ${(() => {
+    //         let returnString = "";
+    //         let head = vars.documentSegmentList.getLastSegment();
+    //         if(head == null){
+    //             returnString = "nothing found";
+    //         }else{
+    //             returnString = JSON.stringify(head);
+    //         }
+    //         return returnString;
+    //     })()}`
+    // ))
 }
 
 export {

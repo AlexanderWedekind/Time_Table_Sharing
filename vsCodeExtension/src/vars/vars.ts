@@ -8,16 +8,40 @@ import { write, output } from '../setupLogic/createTerminal';
 
 //type DocumentSegmentList = new Type
 
-type Range = {
+// 
+class SnippetRange {
     start: {
-        line: number,
-        char: number
-    },
+        line: number | undefined,
+        character: number | undefined
+    }
     end: {
-        line: number,
-        char: number
+        line: number | undefined,
+        character: number | undefined
+    }
+    constructor(){
+        this.start = {
+            line: undefined,
+            character: undefined
+        };
+        this.end = {
+            line: undefined,
+            character: undefined
+        }
+    }
+    // constructor(start: {line: number, character: number}, end: {line: number, character: number}){
+    //     this.start = start;
+    //     this.end = end;
+    // }
+}
+
+class BoundaryString {
+    range: SnippetRange
+    constructor(range: SnippetRange){
+        this.range = range;
     }
 }
+
+type BoundaryStringsArray = Array<BoundaryString>;
 
 type SnippetType = "typescript" | "cSharp";
 
@@ -252,6 +276,11 @@ const vars = {
 
 
 export {
-    vars
+    vars,
+    SnippetType,
+    TextSnippet,
+    SnippetRange,
+    BoundaryString,
+    BoundaryStringsArray
 }
     
