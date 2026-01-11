@@ -45,11 +45,65 @@ type BoundaryStringsArray = Array<BoundaryString>;
 
 type SnippetType = "typescript" | "cSharp";
 
+//type DocumentSegmentList = typeof vars.documentSegmentList;
+
 type Vars = typeof vars;
 
 type Segment = typeof vars.textSnippet;
 
 type SegmentListNode = null | TextSnippet;
+
+class DocumentSegmentList {
+    head: null | TextSnippet
+    addSegment
+    getSegments
+    forEachSegmentNode
+    getLastSegment
+    constructor(){
+        this.head = null as null | TextSnippet;
+        this.addSegment = (newSegment: TextSnippet) => {
+            let lastSegment = vars.documentSegmentList.getLastSegment();
+            if(lastSegment != null){
+                lastSegment.next = newSegment;
+            }else{
+                vars.documentSegmentList.head = newSegment;
+            }
+        };
+        this.getSegments = (value: any) => {
+            let segments = [];
+            let currentSegmentNode = vars.documentSegmentList.head;
+            while(currentSegmentNode != null){
+                if(currentSegmentNode.propertyEquals != undefined){
+                    if(currentSegmentNode.propertyEquals(value) == true){
+                    segments.push(currentSegmentNode);
+                    }
+                }
+                if(currentSegmentNode.next != null){
+                    currentSegmentNode = currentSegmentNode.next
+                }
+
+            };
+            return segments;
+        };
+        this.forEachSegmentNode = (doThis: Function) => {
+            let currentSegment = vars.documentSegmentList.head;
+            while(currentSegment != null){
+                doThis(currentSegment);
+                currentSegment = currentSegment.next;
+            };
+        };
+        this.getLastSegment = () => {
+            let currentSegment = vars.documentSegmentList.head;
+            if(currentSegment != null){
+                while(currentSegment.next != null){
+                    currentSegment = currentSegment.next;
+                }
+            }
+            return currentSegment;
+        }
+    }
+    
+}
 
 class TextSnippet {
         type: SnippetType
@@ -73,14 +127,18 @@ class TextSnippet {
                 this.range = range;
                 this.uri = (() => {
                     let count = 0;
+                    let extension = "";
+                    if(this.type == vars.snippetType.cSharp){
+                        extension = "cs";
+                    }else{
+                        extension = "ts";
+                    }
                     vars.documentSegmentList.forEachSegmentNode(
                         (segment: TextSnippet) => {
-                            if(segment.type == "typescript"){
-                                count ++;
-                            }
+                            count ++;
                         }
                     );
-                    return `file:///${count}.ts`;
+                    return `file:///${count}.${extension}`;
                 })();
                 this.didOpen = false;
                 this.didChange = false;
@@ -217,57 +275,61 @@ const vars = {
         trace: "off"
     },
 
+    diagnosticCollection: undefined as undefined | vscode.DiagnosticCollection,
+
     snippetType: {
         typescript: "typescript",
         cSharp: "cSharp"
     }as const,
-    
-    documentSegmentList: {
-        head: null as null | TextSnippet,
-        addSegment: (newSegment: TextSnippet) => {
-            let lastSegment = vars.documentSegmentList.getLastSegment();
-            if(lastSegment != null){
-                lastSegment.next = newSegment;
-            }else{
-                vars.documentSegmentList.head = newSegment;
-            }
-            
-        },
-        getSegments: (value: any) => {
-            let segments = [];
-            let currentSegmentNode = vars.documentSegmentList.head;
-            while(currentSegmentNode != null){
-                if(currentSegmentNode.propertyEquals != undefined){
-                    if(currentSegmentNode.propertyEquals(value) == true){
-                    segments.push(currentSegmentNode);
-                    }
-                }
-                if(currentSegmentNode.next != null){
-                    currentSegmentNode = currentSegmentNode.next
-                }
 
-            };
+    documentSegmentList: new DocumentSegmentList(),
+    
+    // documentSegmentList: {
+    //     head: null as null | TextSnippet,
+    //     addSegment: (newSegment: TextSnippet) => {
+    //         let lastSegment = vars.documentSegmentList.getLastSegment();
+    //         if(lastSegment != null){
+    //             lastSegment.next = newSegment;
+    //         }else{
+    //             vars.documentSegmentList.head = newSegment;
+    //         }
             
-                return segments;
+    //     },
+    //     getSegments: (value: any) => {
+    //         let segments = [];
+    //         let currentSegmentNode = vars.documentSegmentList.head;
+    //         while(currentSegmentNode != null){
+    //             if(currentSegmentNode.propertyEquals != undefined){
+    //                 if(currentSegmentNode.propertyEquals(value) == true){
+    //                 segments.push(currentSegmentNode);
+    //                 }
+    //             }
+    //             if(currentSegmentNode.next != null){
+    //                 currentSegmentNode = currentSegmentNode.next
+    //             }
+
+    //         };
             
-        },
-        forEachSegmentNode: (doThis: Function) => {
-            let currentSegment = vars.documentSegmentList.head;
-            while(currentSegment != null){
-                doThis(currentSegment);
-                currentSegment = currentSegment.next;
-            };
-        },
-        getLastSegment: () => {
-            let currentSegment = vars.documentSegmentList.head;
-            if(currentSegment != null){
-                while(currentSegment.next != null){
-                    currentSegment = currentSegment.next;
-                }
-            }
-            return currentSegment;
-        }
-    },
+    //             return segments;
+            
+    //     },
+    //     forEachSegmentNode: (doThis: Function) => {
+    //         let currentSegment = vars.documentSegmentList.head;
+    //         while(currentSegment != null){
+    //             doThis(currentSegment);
+    //             currentSegment = currentSegment.next;
+    //         };
+    //     },
+    //     getLastSegment: () => {
+    //         let currentSegment = vars.documentSegmentList.head;
+    //         if(currentSegment != null){
+    //             while(currentSegment.next != null){
+    //                 currentSegment = currentSegment.next;
+    //             }
+    //         }
+    //         return currentSegment;
+    //     }
+    // },
 
     textSnippet: TextSnippet, 
 
@@ -281,6 +343,7 @@ export {
     TextSnippet,
     SnippetRange,
     BoundaryString,
-    BoundaryStringsArray
+    BoundaryStringsArray,
+    DocumentSegmentList
 }
     

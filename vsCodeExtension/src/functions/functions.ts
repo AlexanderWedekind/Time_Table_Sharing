@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { vars, SnippetType, TextSnippet, SnippetRange, BoundaryString, BoundaryStringsArray } from '../vars/vars';
+import { vars, SnippetType, TextSnippet, SnippetRange, BoundaryString, BoundaryStringsArray, DocumentSegmentList } from '../vars/vars';
 import { write, output } from '../setupLogic/createTerminal';
 
 
@@ -64,6 +64,30 @@ function getTextFromRange(range: vscode.Range): string{
     return text;
 }
 
+function getDocRangeFromSnippetDiagnostic(snippetRange: vscode.Range, diagnosticRange: vscode.Range): vscode.Range{
+    let returnRange = new SnippetRange();
+    returnRange.start.line = snippetRange.start.line + diagnosticRange.start.line;
+    if(diagnosticRange.start.line == 0){
+        returnRange.start.character = snippetRange.start.character + diagnosticRange.start.character;
+    }else{
+        returnRange.start.character = diagnosticRange.start.character;
+    }
+    returnRange.end.line = snippetRange.start.line + diagnosticRange.end.line;
+    if(diagnosticRange.end.line == 0){
+        returnRange.end.character = snippetRange.start.character + diagnosticRange.end.character;
+    }else{
+        returnRange.end.character = diagnosticRange.end.character;
+    }
+    return new vscode.Range(
+        new vscode.Position(returnRange.start.line, returnRange.start.character),
+        new vscode.Position(returnRange.end.line, returnRange.end.character)
+    );
+}
+
+function clearDocumentSegmentList(){
+    vars.documentSegmentList = new DocumentSegmentList();
+}
+
 // function addCSharpSegment(range: vscode.Range){
 //     let newSegment: TextSnippet = 
 //     vars.documentSegmentList.addSegment()
@@ -73,6 +97,7 @@ function createDocumentModelAtStartup(){
     let previousSnippetType: SnippetType = "cSharp";
     let snippetBoundariesFound = 0;
     let currentSnippetRange = new SnippetRange();
+    clearDocumentSegmentList();
     refreshCurrentText();
     vars.currentText.forEach((textLine) => {
         if(textLine.isEmptyOrWhitespace == false){
@@ -121,7 +146,7 @@ function createDocumentModelAtStartup(){
                             previousSnippetType = vars.snippetType.typescript;
                             vars.documentSegmentList.addSegment(new TextSnippet(previousSnippetType, textSnippetRange));
                             break;
-                        case (() => {if(snippetBoundariesFound < 2){return 3}})():
+                        default:
                             if(previousSnippetType == vars.snippetType.typescript){
                                 if((snippetBoundariesFound % 2) == 1){
                                     currentSnippetRange.start.line = vars.documentSegmentList.getLastSegment()?.range.end.line;
@@ -179,6 +204,46 @@ function createDocumentModelAtStartup(){
     }
 }
 
+function sendDidOpen(textSnippet: TextSnippet){
+    vars.connection?.sendNotification("textDocument/didOpen", textSnippet.sendDidOpen())
+}
+
+function openAllTSServerDocs(){
+    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+        if(textSnippet.type == vars.snippetType.typescript){
+            sendDidOpen(textSnippet)
+        }
+    })
+}
+
+function openAllCsharpServerDocs(){
+    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+        if(textSnippet.type == vars.snippetType.cSharp){
+            sendDidOpen(textSnippet)
+        }
+    })
+}
+
+function closeServerDoc(textSnippet: TextSnippet){
+    vars.connection?.sendNotification("textDocument/didClose", textSnippet.sendDidClose())
+}
+
+function closeAllTsServerDocs(){
+    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+        if(textSnippet.type == vars.snippetType.typescript){
+            closeServerDoc(textSnippet)
+        }
+    })
+}
+
+function closeAllCsharpServerDocs(){
+    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+        if(textSnippet.type == vars.snippetType.cSharp){
+            closeServerDoc(textSnippet);
+        }
+    })
+}
+
 function identifySnippets(){
     refreshCurrentText();
     vars.currentText.forEach(textLine => {
@@ -208,6 +273,135 @@ function identifySnippets(){
 }
 
 
+
+function displayDiagnosticOnServerPublish(){
+    // result:{
+    //     "uri":"file:///0.ts",
+    //     "diagnostics":[
+    //         {
+    //             "range":{
+    //                 "start":{
+    //                     "line":0,
+    //                     "character":1
+    //                 },
+    //                 "end":{
+    //                     "line":0,
+    //                     "character":2
+    //                 }
+    //             },
+    //             "message":"Unexpected keyword or identifier.",
+    //             "severity":1,
+    //             "code":1434,
+    //             "source":"typescript"
+    //         },
+    //         {
+    //             "range":{
+    //                 "start":{
+    //                     "line":0,
+    //                     "character":1
+    //                 },
+    //                 "end":{
+    //                     "line":0,
+    //                     "character":2
+    //                 }
+    //             },
+    //             "message":"Cannot find name 'a'.",
+    //             "severity":1,
+    //             "code":2304,
+    //             "source":"typescript"
+    //         },
+    //         {
+    //             "range":{
+    //                 "start":{
+    //                     "line":0,
+    //                     "character":3
+    //                 },
+    //                 "end":{
+    //                     "line":0,
+    //                     "character":10
+    //                 }
+    //             },
+    //             "message":"Cannot find name 'snippet'.",
+    //             "severity":1,
+    //             "code":2304,
+    //             "source":"typescript"
+    //         }
+    //     ]
+    // }
+    //         dentifier.","severity":1,"code":1434,"source":"typescript"},{"range":{"start":{"line":0,"character":1},"end":{"line":0,"character":2}},"message":"
+
+    vars.connection?.onNotification("textDocument/publishDiagnostics", (result) => {
+        write(output(
+            "connection.onNotification -> publishDiagnostics",
+            `result:\n${JSON.stringify(result)}`
+        ))
+        let snippetRange: vscode.Range = (() => {
+            let returnRange: undefined | vscode.Range = undefined;
+            let count = 0;
+            vars.documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
+                count ++;
+                write(output(`snippet: ${count}`,
+                    `type: ${segment.type}
+                    range: ${segment.range}
+                    uri: ${segment.uri}
+                    result uri: ${result.uri}
+                    `
+                ))
+                if(segment.uri == result.uri){
+                    write(output(
+                        "--> Match! <--",
+                        `returnRange: ${returnRange}
+                        assigning returnRange...
+                        ${(() => {
+                            returnRange = segment.range;
+                            return "done."
+                        })()}
+                        returnRange: ${returnRange}`
+                    ))
+                    
+                }
+            })
+            if(returnRange == undefined){
+                returnRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+                write(output(
+                    "Connection.onNotification -> find diagnostic parent snippet",
+                    `unable to find Textsnippet with uri: '${result.uri}\nimproper range was set!`
+                ))
+            }
+            return returnRange!;
+        })();
+        write(output(
+            "snippetRange",
+            `${JSON.stringify(snippetRange)}`
+        ))
+        let diagnostics: vscode.Diagnostic[] = [];
+        result.diagnostics.forEach((diagnostic: vscode.Diagnostic) => {
+                write(output("diag", `${JSON.stringify(diagnostic)}`));
+                write(output("diagnostic range", `${JSON.stringify(diagnostic.range)}`));
+                diagnostic.range = getDocRangeFromSnippetDiagnostic(snippetRange, diagnostic.range);
+                write(output("recalculated range", `${JSON.stringify(diagnostic.range)}`));
+                diagnostic.source = `Embedded ts in c#, snippet-uri: '${result.uri}`;
+                write(output("new diag", `${JSON.stringify(diagnostic)}`));
+                diagnostics.push(diagnostic);
+            }
+        );
+        vars.diagnosticCollection?.set(vars.currentTargetDoc!.uri, diagnostics);
+    })
+}
+
+function renewDiagnosticsAtDocumentChange(){
+    vscode.workspace.onDidChangeTextDocument((changeEvent: vscode.TextDocumentChangeEvent) => {
+        if(changeEvent.document.uri == vars.currentTargetDoc?.uri){
+            //closeAllCsharpServerDocs();
+            closeAllTsServerDocs();
+            createDocumentModelAtStartup();
+            //openAllCsharpServerDocs();
+            openAllTSServerDocs();
+        }
+    })
+}
+
+
 export{
     getTextLineRange,
     targetCurrentDoc,
@@ -215,5 +409,13 @@ export{
     refreshCurrentText,
     identifySnippets,
     getTextFromRange,
-    createDocumentModelAtStartup
+    createDocumentModelAtStartup,
+    sendDidOpen,
+    closeServerDoc,
+    openAllCsharpServerDocs,
+    openAllTSServerDocs,
+    closeAllTsServerDocs,
+    closeAllCsharpServerDocs,
+    renewDiagnosticsAtDocumentChange,
+    displayDiagnosticOnServerPublish
 }

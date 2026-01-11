@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as functions from './functions';
-import { vars } from '../vars/vars';
+import { TextSnippet, vars } from '../vars/vars';
 import { output, write } from '../setupLogic/createTerminal';
 import * as serverSetup from '../setupLogic/createServerInstance';
+import {createDiagnosticCollection} from '../setupLogic/diagNosticCollection';
 
 //"""" a snippet """"
 
@@ -85,13 +86,30 @@ async function run(){
         )
     )
 
+    createDiagnosticCollection();
+
     functions.createDocumentModelAtStartup();
     write(output(
         "Document Model",
         `${(() => {
-            
+            let returnstring = "";
+            let count = 0;
+            vars.documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
+                count ++;
+                returnstring = returnstring + `- snippet ${count}\n    type: '${segment.type}'\n    range: ${segment.range}\n`;
+                if(segment.type == vars.snippetType.typescript){
+                    returnstring = returnstring + `    text:\n        ${segment.text}\n`;
+                }
+            })
+            return returnstring;
         })()}`
     ))
+
+    functions.displayDiagnosticOnServerPublish();
+
+    functions.openAllTSServerDocs();
+
+    functions.renewDiagnosticsAtDocumentChange();
 
     // functions.identifySnippets();
     // write(output(

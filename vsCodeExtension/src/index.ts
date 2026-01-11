@@ -8,6 +8,7 @@ import * as cp from 'child_process';
 import * as term from './setupLogic/createTerminal';
 import { run } from './functions/run';
 import { targetCurrentDoc } from './functions/functions';
+import {disposeDiagnosticCollection} from './setupLogic/diagNosticCollection';
 
 const name = require('../package.json').name;
 const version = require('../package.json').version;
@@ -29,26 +30,30 @@ export function activate(context: vscode.ExtensionContext){
 };
 
 export function deactivate(){
-    term.write(term.output(
-        "Quit", `quitting ${name}-${version}\n${term.output(
-            "Cleanup",
-            `${
-                (() => {try{
-                    term.myTerminalDispose();
-                    return "terminal disposed..."
-                    }catch(error){
-                        return `failed to dispose terminal\n${JSON.stringify(error)}`
-                    }
-                })()
-            }${
-                (() => {
-                    try{
-                        term.myPseudoTermClose();
-                        return "\npseudo terminal closed..."
-                    }catch(error){
-                        return `\nfailed to close pseudo terminal\n${JSON.stringify(error)}`
-                    }
-                })()
-            }`
-        )}`))
+    // term.write(term.output(
+    //     "Quit", `quitting ${name}-${version}\n${term.output(
+    //         "Cleanup",
+    //         `${
+    //             (() => {try{
+    //                 term.myTerminalDispose();
+    //                 return "terminal disposed..."
+    //                 }catch(error){
+    //                     return `failed to dispose terminal\n${JSON.stringify(error)}`
+    //                 }
+    //             })()
+    //         }${
+    //             (() => {
+    //                 try{
+    //                     term.myPseudoTermClose();
+    //                     return "\npseudo terminal closed..."
+    //                 }catch(error){
+    //                     return `\nfailed to close pseudo terminal\n${JSON.stringify(error)}`
+    //                 }
+    //             })()
+    //         }`
+    //     )}`))
+    term.myTerminalDispose();
+    term.myPseudoTermClose();
+    disposeDiagnosticCollection();
+
 };
