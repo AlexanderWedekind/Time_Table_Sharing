@@ -1,6 +1,6 @@
 {
   "name": "embeddedlsp",
-  "version": "1.0.102",
+  "version": "1.0.107",
   "publisher": "A.Wedekind",
   "engines": {
     "vscode": "^1.96.3"
@@ -15,10 +15,6 @@
       {
         "command": "JsAndCssInCsharp.startEmbeddedLsp",
         "title": "startEmbeddedLsp"
-      },
-      {
-        "command": "JsAndCssInCsharp.targetNewDocument",
-        "title": "targetNewDocument"
       },
       {
         "command": "JsAndCssInCsharp.quitEmbeddedLsp",

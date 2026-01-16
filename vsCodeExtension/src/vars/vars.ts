@@ -6,9 +6,6 @@ import * as functions from '../functions/functions';
 import { Type } from 'typescript';
 import { write, output } from '../setupLogic/createTerminal';
 
-//type DocumentSegmentList = new Type
-
-// 
 class SnippetRange {
     start: {
         line: number | undefined,
@@ -28,10 +25,6 @@ class SnippetRange {
             character: undefined
         }
     }
-    // constructor(start: {line: number, character: number}, end: {line: number, character: number}){
-    //     this.start = start;
-    //     this.end = end;
-    // }
 }
 
 class BoundaryString {
@@ -41,11 +34,22 @@ class BoundaryString {
     }
 }
 
+class TargetedDoc {
+    textDocument: vscode.TextDocument
+    index: number
+    documentSegmentList: DocumentSegmentList
+    currentText: vscode.TextLine[]
+    constructor(doc: vscode.TextDocument){
+        this.textDocument = doc;
+        this.index = vars.workspaceTargetDocsCollection.length;
+        this.currentText = [];
+        this.documentSegmentList = new DocumentSegmentList()
+    }
+}
+
 type BoundaryStringsArray = Array<BoundaryString>;
 
 type SnippetType = "typescript" | "cSharp";
-
-//type DocumentSegmentList = typeof vars.documentSegmentList;
 
 type Vars = typeof vars;
 
@@ -121,7 +125,7 @@ class TextSnippet {
         sendDidClose: Function
         propertyEquals: Function
 
-        constructor(type: SnippetType, range: vscode.Range){
+        constructor(doc: TargetedDoc, type: SnippetType, range: vscode.Range){
             //if(type == "typescript"){
                 this.type = type;
                 this.range = range;
@@ -138,7 +142,7 @@ class TextSnippet {
                             count ++;
                         }
                     );
-                    return `file:///${count}.${extension}`;
+                    return `file:///${doc.index}-${count}.${extension}`;
                 })();
                 this.didOpen = false;
                 this.didChange = false;
@@ -152,7 +156,7 @@ class TextSnippet {
                     return returnString;
                 })();
                 this.version = 1;
-                this.text = functions.getTextFromRange(range)//(() => {
+                this.text = functions.getTextFromRange(doc, range)//(() => {
                 //     let text = "";
                 //     let lineIndex = this.range.start.line;
                 //     do{
@@ -215,10 +219,6 @@ class TextSnippet {
                     );
                     return propertyFound;
                 }
-            // }else if(type == "cSharp"){
-            //     this.type = type;
-            //     this.range = range;
-            // }
         }
     }
 
@@ -228,9 +228,11 @@ const vars = {
 
     connection: null as jsonRpc.MessageConnection | null,
 
-    currentTargetDoc: undefined as vscode.TextDocument | undefined,
+    //currentTargetDoc: undefined as vscode.TextDocument | undefined,
 
-    currentText: [] as vscode.TextLine[],
+    workspaceTargetDocsCollection: [] as TargetedDoc[],
+
+    //currentText: [] as vscode.TextLine[],
     
     tsLanguageServerPath: path.join(
         __dirname,
@@ -344,6 +346,7 @@ export {
     SnippetRange,
     BoundaryString,
     BoundaryStringsArray,
-    DocumentSegmentList
+    DocumentSegmentList,
+    TargetedDoc
 }
     

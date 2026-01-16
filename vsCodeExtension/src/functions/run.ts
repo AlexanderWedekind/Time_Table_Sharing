@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as functions from './functions';
-import { TextSnippet, vars } from '../vars/vars';
+import { TargetedDoc, TextSnippet, vars } from '../vars/vars';
 import { output, write } from '../setupLogic/createTerminal';
 import * as serverSetup from '../setupLogic/createServerInstance';
 import {createDiagnosticCollection} from '../setupLogic/diagNosticCollection';
@@ -8,10 +8,6 @@ import {createDiagnosticCollection} from '../setupLogic/diagNosticCollection';
 //"""" a snippet """"
 
 async function run(){
-    functions.targetCurrentDoc();
-    write(output("Doc Uri", `${functions.giveCurrentDocUri()}\r\n${output("Doc Uri", functions.giveCurrentDocUri())}`));
-    //write(output("Doc uri", functions.giveCurrentDocUri()));
-    //write(output("TEST", "indented"))
     write(output("tsserver path", vars.tsLanguageServerPath));
     write(output(
             "Start TsServer",
@@ -87,45 +83,40 @@ async function run(){
     )
 
     createDiagnosticCollection();
+    functions.displayDiagnosticOnServerPublish();
+    functions.renewDiagnosticsAtDocumentChange();
+    functions.atStartupFirstDocFindSnippetExtractionDiagnosticPublishSequence();
 
-    functions.createDocumentModelAtStartup();
     write(output(
-        "Document Model",
+        "workspace target docs",
         `${(() => {
-            let returnstring = "";
-            let count = 0;
-            vars.documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
-                count ++;
-                returnstring = returnstring + `- snippet ${count}\n    type: '${segment.type}'\n    range: ${segment.range}\n`;
-                if(segment.type == vars.snippetType.typescript){
-                    returnstring = returnstring + `    text:\n        ${segment.text}\n`;
+            let returnString = "";
+            vars.workspaceTargetDocsCollection.forEach((targetedDoc: TargetedDoc) => {
+                if(returnString.length > 0){
+                    returnString += "\n"
                 }
+                returnString += output(
+                    `index: ${targetedDoc.index}\ndoc name: ${targetedDoc.textDocument.fileName}\nsnippets:`,
+                    `${(() => {
+                        let docSnippetsReturnString = "";
+                        let count = 0;
+                        targetedDoc.documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
+                            count ++;
+                            if(docSnippetsReturnString.length > 0){
+                                docSnippetsReturnString += "\n"
+                            }
+                            docSnippetsReturnString += `- snippet: ${count}\n    type: ${segment.type}\n    uri: ${segment.uri}\n    range: ${JSON.stringify(segment.range)}`;
+                            if(segment.type == vars.snippetType.typescript){
+                                docSnippetsReturnString += `\n    text:\n        ${segment.text}`
+                            }
+                        })
+                        return docSnippetsReturnString
+                    })()}`
+                )
             })
-            return returnstring;
+            return returnString
         })()}`
     ))
-
-    functions.displayDiagnosticOnServerPublish();
-
-    functions.openAllTSServerDocs();
-
-    functions.renewDiagnosticsAtDocumentChange();
-
-    // functions.identifySnippets();
-    // write(output(
-    //     "Document Segment List - Head",
-    //     `head:\n
-    //     ${(() => {
-    //         let returnString = "";
-    //         let head = vars.documentSegmentList.getLastSegment();
-    //         if(head == null){
-    //             returnString = "nothing found";
-    //         }else{
-    //             returnString = JSON.stringify(head);
-    //         }
-    //         return returnString;
-    //     })()}`
-    // ))
 }
 
 export {

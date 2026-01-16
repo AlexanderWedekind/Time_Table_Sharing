@@ -13,13 +13,13 @@ export function disposeDiagnosticCollection(){
     }
 }
 
-export function setDiagnostics(diagnostics: vscode.Diagnostic[] | undefined){
-    if(vars.diagnosticCollection != undefined){
-        vars.diagnosticCollection.set(vars.currentTargetDoc!.uri, diagnostics);
-    }else{
-        write(output(
-            "setDiagnostics() -> Problem",
-            "'vars.diagnosticCollection' was undefined -> no diagnostics were set"
-        ))
-    }
-}
+// export function setDiagnostics(diagnostics: vscode.Diagnostic[] | undefined){
+//     if(vars.diagnosticCollection != undefined){
+//         vars.diagnosticCollection.set(vars.currentTargetDoc!.uri, diagnostics);
+//     }else{
+//         write(output(
+//             "setDiagnostics() -> Problem",
+//             "'vars.diagnosticCollection' was undefined -> no diagnostics were set"
+//         ))
+//     }
+// }

@@ -1,66 +1,110 @@
 import * as vscode from 'vscode';
-import { vars, SnippetType, TextSnippet, SnippetRange, BoundaryString, BoundaryStringsArray, DocumentSegmentList } from '../vars/vars';
+import { vars,
+    SnippetType,
+    TextSnippet,
+    SnippetRange,
+    BoundaryString,
+    BoundaryStringsArray,
+    DocumentSegmentList,
+    TargetedDoc
+} from '../vars/vars';
 import { write, output } from '../setupLogic/createTerminal';
 
 
-function targetCurrentDoc(): void{
-    let doc = vscode.window.activeTextEditor?.document;
-    if(doc != undefined){
-        vars.currentTargetDoc = doc;
-    } 
-};
+// function targetCurrentDoc(): void{
+//     let doc = vscode.window.activeTextEditor?.document;
+//     if(doc != undefined){
+//         vars.currentTargetDoc = doc;
+//     } 
+// };
 
-function giveCurrentDocUri(): string {
-    if(vars.currentTargetDoc != undefined){
-        return vars.currentTargetDoc.uri.toString();
-    }else{
-        return "undefined";
+// function giveCurrentDocUri(): string {
+//     if(vars.currentTargetDoc != undefined){
+//         return vars.currentTargetDoc.uri.toString();
+//     }else{
+//         return "undefined";
+//     }
+// };
+
+function getCurrentText(doc: vscode.TextDocument): vscode.TextLine[] {
+    let returnArray: vscode.TextLine[] = [];
+    for(let i = 0; i < doc.lineCount; i++){
+        returnArray.push(doc.lineAt(i))
     }
-};
-
-function refreshCurrentText(): void{
-    let doc = vscode.window.activeTextEditor?.document;
-    if(doc == undefined){
-        write(output("PROBLEM -> 'refreshCurrentText()'",
-            `active document's doc is undefined\n
-            active editor: ${JSON.stringify(vscode.window.activeTextEditor)}\n
-            active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}`
-        ))
-    }else if(giveCurrentDocUri() == "undefined"){
-        write(output("PROBLEM -> 'refreshCurrentText'",
-            `'vars.currentTargetDoc.uri' is undefined\n
-            active editor: ${JSON.stringify(vscode.window.activeTextEditor)}\n
-            active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}`
-        ))
-    }else if(doc.uri.toString() != giveCurrentDocUri()){
-        write(output("INFO/PROBLEM -> 'refreshCurrentText'",
-            `active document's doc does not match the current target doc\n
-            active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}\n
-            target doc uri: ${giveCurrentDocUri()}`
-        ))
-    }else if(doc.uri.toString() == giveCurrentDocUri()){
-        targetCurrentDoc();
-        let linecount = vars.currentTargetDoc?.lineCount;
-        vars.currentText = [];
-        for(let i: number = 0; i < linecount!; i ++){
-            vars.currentText.push(vars.currentTargetDoc!.lineAt(i))
-        }
-        write(output("INFO -> 'refreshCurrentText'",
-            `refreshed 'vars.currentText',\n
-            from: ${giveCurrentDocUri()}`
-        ))
-    }
-};
-
-function getTextLineRange(textLine: vscode.TextLine){
-    return textLine.range
+    return returnArray;
 }
 
-function getTextFromRange(range: vscode.Range): string{
+// function refreshCurrentText(): void{
+//     let doc = vscode.window.activeTextEditor?.document;
+//     if(doc == undefined){
+//         write(output("PROBLEM -> 'refreshCurrentText()'",
+//             `active document's doc is undefined\n
+//             active editor: ${JSON.stringify(vscode.window.activeTextEditor)}\n
+//             active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}`
+//         ))
+//     }else if(giveCurrentDocUri() == "undefined"){
+//         write(output("PROBLEM -> 'refreshCurrentText'",
+//             `'vars.currentTargetDoc.uri' is undefined\n
+//             active editor: ${JSON.stringify(vscode.window.activeTextEditor)}\n
+//             active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}`
+//         ))
+//     }else if(doc.uri.toString() != giveCurrentDocUri()){
+//         write(output("INFO/PROBLEM -> 'refreshCurrentText'",
+//             `active document's doc does not match the current target doc\n
+//             active doc: ${JSON.stringify(vscode.window.activeTextEditor?.document)}\n
+//             target doc uri: ${giveCurrentDocUri()}`
+//         ))
+//     }else if(doc.uri.toString() == giveCurrentDocUri()){
+//         targetCurrentDoc();
+//         let linecount = vars.currentTargetDoc?.lineCount;
+//         vars.currentText = [];
+//         for(let i: number = 0; i < linecount!; i ++){
+//             vars.currentText.push(vars.currentTargetDoc!.lineAt(i))
+//         }
+//         write(output("INFO -> 'refreshCurrentText'",
+//             `refreshed 'vars.currentText',\n
+//             from: ${giveCurrentDocUri()}`
+//         ))
+//     }
+// };
+
+export function findWorkspaceTargetDocs(){
+    vscode.workspace.textDocuments.forEach((textDocument) => {
+        write(output(
+            `${textDocument.fileName}`,
+            `${textDocument.fileName.substring(textDocument.fileName.length - 3)}`
+        ))
+        if(textDocument.fileName.substring(textDocument.fileName.length - 3) == '.cs'){
+            vars.workspaceTargetDocsCollection.push(new TargetedDoc(textDocument));
+        };
+        write(output(
+            "workspaceTargetDocsCollection elements",
+            `${(() => {
+                let returnString: string = "";
+                vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+                    if(returnString.length > 0){
+                        returnString += `\n${doc.textDocument.fileName}`
+                    }else{
+                        returnString += `${doc.textDocument.fileName}`
+                    }
+                })
+                return returnString
+            })()}`
+        ))
+    });
+}
+
+function updateTargetDocText(doc: TargetedDoc){
+    vars.workspaceTargetDocsCollection[doc.index].currentText = getCurrentText(doc.textDocument); 
+}
+
+function clearAllWorkspaceTargetDocs(){
+    vars.workspaceTargetDocsCollection = []
+}
+
+export function getTextFromRange(doc: TargetedDoc, range: vscode.Range): string{
     let text = "";
-    if(vars.currentTargetDoc != undefined){
-        text = vars.currentTargetDoc.getText(range);
-    }
+    text = doc.textDocument.getText(range);
     return text;
 }
 
@@ -84,22 +128,20 @@ function getDocRangeFromSnippetDiagnostic(snippetRange: vscode.Range, diagnostic
     );
 }
 
-function clearDocumentSegmentList(){
-    vars.documentSegmentList = new DocumentSegmentList();
+function clearDocumentSegmentList(doc: TargetedDoc){
+    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList = new DocumentSegmentList();
 }
 
-// function addCSharpSegment(range: vscode.Range){
-//     let newSegment: TextSnippet = 
-//     vars.documentSegmentList.addSegment()
-// }
-
-function createDocumentModelAtStartup(){
+function createModelForDoc(doc: TargetedDoc){
     let previousSnippetType: SnippetType = "cSharp";
     let snippetBoundariesFound = 0;
     let currentSnippetRange = new SnippetRange();
-    clearDocumentSegmentList();
-    refreshCurrentText();
-    vars.currentText.forEach((textLine) => {
+    //clearDocumentSegmentList();
+    clearDocumentSegmentList(doc);
+    //refreshCurrentText();
+    updateTargetDocText(doc);
+    //vars.currentText.forEach((textLine) => {
+    vars.workspaceTargetDocsCollection[doc.index].currentText.forEach((textLine) => {
         if(textLine.isEmptyOrWhitespace == false){
             if(textLine.text.includes('""""')){
                 let currentTextLineCharacterIndex = -1;
@@ -134,9 +176,9 @@ function createDocumentModelAtStartup(){
                                 new vscode.Position(currentSnippetRange.start.line!, currentSnippetRange.start.character!),
                                 new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
                             );
-                            vars.documentSegmentList.addSegment(new TextSnippet(previousSnippetType, textSnippetRange));
-                            currentSnippetRange.start.line = vars.documentSegmentList.getLastSegment()?.range.end.line;
-                            currentSnippetRange.start.character = vars.documentSegmentList.getLastSegment()?.range.end.character;
+                            vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, previousSnippetType, textSnippetRange));
+                            currentSnippetRange.start.line = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.line;
+                            currentSnippetRange.start.character = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.character;
                             currentSnippetRange.end.line = boundaryRange.start.line;
                             currentSnippetRange.end.character = boundaryRange.start.character;
                             textSnippetRange = new vscode.Range(
@@ -144,13 +186,13 @@ function createDocumentModelAtStartup(){
                                 new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
                             )
                             previousSnippetType = vars.snippetType.typescript;
-                            vars.documentSegmentList.addSegment(new TextSnippet(previousSnippetType, textSnippetRange));
+                            vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, previousSnippetType, textSnippetRange));
                             break;
                         default:
                             if(previousSnippetType == vars.snippetType.typescript){
                                 if((snippetBoundariesFound % 2) == 1){
-                                    currentSnippetRange.start.line = vars.documentSegmentList.getLastSegment()?.range.end.line;
-                                    currentSnippetRange.start.character = vars.documentSegmentList.getLastSegment()?.range.end.character;
+                                    currentSnippetRange.start.line = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.line;
+                                    currentSnippetRange.start.character = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.character;
                                     currentSnippetRange.end.line = boundaryRange.end.line;
                                     currentSnippetRange.end.character = boundaryRange.end.character;
                                 };
@@ -160,9 +202,9 @@ function createDocumentModelAtStartup(){
                                         new vscode.Position(currentSnippetRange.start.line!, currentSnippetRange.start.character!),
                                         new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
                                     );
-                                    vars.documentSegmentList.addSegment(new TextSnippet(previousSnippetType, textSnippetRange));
-                                    currentSnippetRange.start.line = vars.documentSegmentList.getLastSegment()?.range.end.line;
-                                    currentSnippetRange.start.character = vars.documentSegmentList.getLastSegment()?.range.end.character;
+                                    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, previousSnippetType, textSnippetRange));
+                                    currentSnippetRange.start.line = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.line;
+                                    currentSnippetRange.start.character = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()?.range.end.character;
                                     currentSnippetRange.end.line = boundaryRange.start.line;
                                     currentSnippetRange.end.character = boundaryRange.start.character;
                                     previousSnippetType = vars.snippetType.typescript;
@@ -170,7 +212,7 @@ function createDocumentModelAtStartup(){
                                         new vscode.Position(currentSnippetRange.start.line!, currentSnippetRange.start.character!),
                                         new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
                                     );
-                                    vars.documentSegmentList.addSegment(new TextSnippet(previousSnippetType, textSnippetRange));
+                                    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, previousSnippetType, textSnippetRange));
                                 }
                             }
                             break;
@@ -183,25 +225,37 @@ function createDocumentModelAtStartup(){
         let currentSnippetRange = new SnippetRange();
         currentSnippetRange.start.line = 0;
         currentSnippetRange.start.character = 0;
-        currentSnippetRange.end.line = vars.currentTargetDoc!.lineCount - 1;
-        currentSnippetRange.end.character = vars.currentTargetDoc!.lineAt(vars.currentTargetDoc!.lineCount - 1).text.length;
+        currentSnippetRange.end.line = vars.workspaceTargetDocsCollection[doc.index].textDocument.lineCount - 1;
+        currentSnippetRange.end.character = vars.workspaceTargetDocsCollection[doc.index].textDocument.lineAt(vars.workspaceTargetDocsCollection[doc.index].textDocument.lineCount - 1).text.length;
         let textSnippetRange = new vscode.Range(
             new vscode.Position(currentSnippetRange.start.line!, currentSnippetRange.start.character!),
             new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
         );
-        vars.documentSegmentList.addSegment(new TextSnippet(vars.snippetType.cSharp, textSnippetRange))
+        vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, vars.snippetType.cSharp, textSnippetRange))
     }else{
         let currentSnippetRange = new SnippetRange();
-        currentSnippetRange.start.line = vars.documentSegmentList.getLastSegment()!.range.end.line;
-        currentSnippetRange.start.character = vars.documentSegmentList.getLastSegment()!.range.end.character;
-        currentSnippetRange.end.line = vars.currentTargetDoc!.lineCount - 1;
-        currentSnippetRange.end.character = vars.currentTargetDoc!.lineAt(vars.currentTargetDoc!.lineCount - 1).text.length;
+        currentSnippetRange.start.line = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()!.range.end.line;
+        currentSnippetRange.start.character = vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.getLastSegment()!.range.end.character;
+        currentSnippetRange.end.line = vars.workspaceTargetDocsCollection[doc.index].textDocument.lineCount - 1;
+        currentSnippetRange.end.character = vars.workspaceTargetDocsCollection[doc.index].textDocument.lineAt(vars.workspaceTargetDocsCollection[doc.index].textDocument.lineCount - 1).text.length;
         let textSnippetRange = new vscode.Range(
             new vscode.Position(currentSnippetRange.start.line!, currentSnippetRange.start.character!),
             new vscode.Position(currentSnippetRange.end.line!, currentSnippetRange.end.character!)
         );
-        vars.documentSegmentList.addSegment(new TextSnippet(vars.snippetType.cSharp, textSnippetRange))
+        vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.addSegment(new TextSnippet(doc, vars.snippetType.cSharp, textSnippetRange))
     }
+}
+
+function createModelForAllDocs(){
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        createModelForDoc(doc);
+    })    
+}
+
+function clearAllDocumentSegmentLists(){
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        clearDocumentSegmentList(doc)
+    })
 }
 
 function sendDidOpen(textSnippet: TextSnippet){
@@ -209,7 +263,17 @@ function sendDidOpen(textSnippet: TextSnippet){
 }
 
 function openAllTSServerDocs(){
-    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        doc.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+            if(textSnippet.type == vars.snippetType.typescript){
+                sendDidOpen(textSnippet)
+            }
+        })
+    })
+}
+
+function openAllTargetDocTsServerDocs(doc: TargetedDoc){
+    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
         if(textSnippet.type == vars.snippetType.typescript){
             sendDidOpen(textSnippet)
         }
@@ -217,10 +281,12 @@ function openAllTSServerDocs(){
 }
 
 function openAllCsharpServerDocs(){
-    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
-        if(textSnippet.type == vars.snippetType.cSharp){
-            sendDidOpen(textSnippet)
-        }
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+            if(textSnippet.type == vars.snippetType.cSharp){
+                // if choosing to implement, this will be like what 'sendDidOpen(textSnippet:TextSnippet)' is for ts snippets, but for c# snippets and a c# language server
+            }
+        })
     })
 }
 
@@ -229,52 +295,70 @@ function closeServerDoc(textSnippet: TextSnippet){
 }
 
 function closeAllTsServerDocs(){
-    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+            if(textSnippet.type == vars.snippetType.typescript){
+                closeServerDoc(textSnippet)
+            }
+        })
+    })
+}
+
+function closeAllCsharpServerDocs(){
+    vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+        vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+            // if choosing to implement, this will be like what 'closeServerDoc(textSnippet: TextSnippet)' is for ts snippets, but for c# snippets and a c# language server
+        })
+    })
+}
+
+function closeTargetDocAllTsServerDocs(doc: TargetedDoc){
+    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
         if(textSnippet.type == vars.snippetType.typescript){
             closeServerDoc(textSnippet)
         }
     })
 }
 
-function closeAllCsharpServerDocs(){
-    vars.documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
+function closeTargetDocAllCsharpServerDocs(doc: TargetedDoc){
+    vars.workspaceTargetDocsCollection[doc.index].documentSegmentList.forEachSegmentNode((textSnippet: TextSnippet) => {
         if(textSnippet.type == vars.snippetType.cSharp){
-            closeServerDoc(textSnippet);
+            // if choosing to implement, this will be like what 'closeServerDoc(textSnippet: TextSnippet)' is for ts snippets, but for c# snippets and a c# language server
         }
     })
 }
 
-function identifySnippets(){
-    refreshCurrentText();
-    vars.currentText.forEach(textLine => {
-        if(textLine.isEmptyOrWhitespace == false){
-            let text = textLine.text;
-            if(text.includes('""""')){
-                write(output("Snippet Boundary Found",
-                    `line:\n
-                    ${text}\n
-                    lineNr:\n
-                    ${textLine.lineNumber}\n
-                    snippet boundary index:\n
-                    ${text.indexOf('""""')}\n
-                    boundary string:\n
-                    ${text.substring(text.indexOf('""""'), text.indexOf('""""') + 4)}`
-                ));
-                if(vars.documentSegmentList.head == null){
-                    let range = new vscode.Range(
-                        new vscode.Position(0, 0),
-                        new vscode.Position(textLine.lineNumber, text.indexOf('""""'))
-                    );
-                    vars.documentSegmentList.head = new TextSnippet(vars.snippetType.cSharp, range);
-                }
-            }
-        }
-    });
-}
+// function identifySnippets(){
+//     refreshCurrentText();
+//     vars.currentText.forEach(textLine => {
+//         if(textLine.isEmptyOrWhitespace == false){
+//             let text = textLine.text;
+//             if(text.includes('""""')){
+//                 write(output("Snippet Boundary Found",
+//                     `line:\n
+//                     ${text}\n
+//                     lineNr:\n
+//                     ${textLine.lineNumber}\n
+//                     snippet boundary index:\n
+//                     ${text.indexOf('""""')}\n
+//                     boundary string:\n
+//                     ${text.substring(text.indexOf('""""'), text.indexOf('""""') + 4)}`
+//                 ));
+//                 if(vars.documentSegmentList.head == null){
+//                     let range = new vscode.Range(
+//                         new vscode.Position(0, 0),
+//                         new vscode.Position(textLine.lineNumber, text.indexOf('""""'))
+//                     );
+//                     vars.documentSegmentList.head = new TextSnippet(vars.snippetType.cSharp, range);
+//                 }
+//             }
+//         }
+//     });
+// }
 
 
 
-function displayDiagnosticOnServerPublish(){
+export function displayDiagnosticOnServerPublish(){
     // result:{
     //     "uri":"file:///0.ts",
     //     "diagnostics":[
@@ -328,17 +412,18 @@ function displayDiagnosticOnServerPublish(){
     //         }
     //     ]
     // }
-    //         dentifier.","severity":1,"code":1434,"source":"typescript"},{"range":{"start":{"line":0,"character":1},"end":{"line":0,"character":2}},"message":"
-
+    
     vars.connection?.onNotification("textDocument/publishDiagnostics", (result) => {
         write(output(
             "connection.onNotification -> publishDiagnostics",
             `result:\n${JSON.stringify(result)}`
         ))
+        let docUri: string = result.uri;
+        let docIndex = Number.parseInt(docUri.substring(docUri.lastIndexOf('/') + 1, docUri.indexOf('-')));
         let snippetRange: vscode.Range = (() => {
             let returnRange: undefined | vscode.Range = undefined;
             let count = 0;
-            vars.documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
+            vars.workspaceTargetDocsCollection[docIndex].documentSegmentList.forEachSegmentNode((segment: TextSnippet) => {
                 count ++;
                 write(output(`snippet: ${count}`,
                     `type: ${segment.type}
@@ -385,37 +470,27 @@ function displayDiagnosticOnServerPublish(){
                 diagnostics.push(diagnostic);
             }
         );
-        vars.diagnosticCollection?.set(vars.currentTargetDoc!.uri, diagnostics);
+        vars.diagnosticCollection?.set(vars.workspaceTargetDocsCollection[docIndex].textDocument.uri, diagnostics);
     })
 }
 
-function renewDiagnosticsAtDocumentChange(){
+export function renewDiagnosticsAtDocumentChange(){
     vscode.workspace.onDidChangeTextDocument((changeEvent: vscode.TextDocumentChangeEvent) => {
-        if(changeEvent.document.uri == vars.currentTargetDoc?.uri){
-            //closeAllCsharpServerDocs();
-            closeAllTsServerDocs();
-            createDocumentModelAtStartup();
-            //openAllCsharpServerDocs();
-            openAllTSServerDocs();
-        }
+        vars.workspaceTargetDocsCollection.forEach((doc: TargetedDoc) => {
+            if(changeEvent.document.uri == doc.textDocument.uri){
+                closeTargetDocAllTsServerDocs(doc);
+                clearDocumentSegmentList(doc);
+                createModelForDoc(doc);
+                openAllTargetDocTsServerDocs(doc)
+            }
+        })
     })
 }
 
-
-export{
-    getTextLineRange,
-    targetCurrentDoc,
-    giveCurrentDocUri,
-    refreshCurrentText,
-    identifySnippets,
-    getTextFromRange,
-    createDocumentModelAtStartup,
-    sendDidOpen,
-    closeServerDoc,
-    openAllCsharpServerDocs,
-    openAllTSServerDocs,
-    closeAllTsServerDocs,
-    closeAllCsharpServerDocs,
-    renewDiagnosticsAtDocumentChange,
-    displayDiagnosticOnServerPublish
+export function atStartupFirstDocFindSnippetExtractionDiagnosticPublishSequence(){
+    findWorkspaceTargetDocs();
+    createModelForAllDocs();
+    openAllTSServerDocs();
 }
+
+
