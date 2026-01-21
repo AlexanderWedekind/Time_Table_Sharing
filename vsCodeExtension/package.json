@@ -1,6 +1,6 @@
 {
   "name": "embeddedlsp",
-  "version": "1.0.107",
+  "version": "1.0.118",
   "publisher": "A.Wedekind",
   "engines": {
     "vscode": "^1.96.3"
@@ -23,22 +23,25 @@
     ]
   },
   "scripts": {
+    "install": "npm run compile && npm run package && npm run clear-old-versions && npm run installVsixFile",
     "test": "node ./scripts/test.js",
     "compile": "node ./scripts/compile.js",
     "package": "node ./scripts/package.js",
-    "install": "node ./scripts/install.js",
+    "installVsixFile": "node ./scripts/install.js",
     "clear-old-versions": "node ./scripts/delete-old-version-files.js",
-    "reload-vsc-window": "code --reuse-window --command workbench.action.reloadWindow",
-    "patch-local": "npm run compile && npm version patch && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window",
-    "minor-local": "npm run compile && npm version minor && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window",
-    "mayor-local": "npm run compile && npm version mayor && npm run package && npm run clear-old-versions && npm run install && npm run reload-vsc-window"
+    "patch-local": "npm run compile && npm version patch && npm run package && npm run clear-old-versions && npm run installVsixFile",
+    "minor-local": "npm run compile && npm version minor && npm run package && npm run clear-old-versions && npm run installVsixFile",
+    "mayor-local": "npm run compile && npm version mayor && npm run package && npm run clear-old-versions && npm run installVsixFile"
   },
   "author": "Alexander Wedekind",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.9.1",
     "@types/vscode": "^1.96.3",
+    "fs": "^0.0.1-security",
+    "strip-ansi": "^7.1.2",
     "tsconfig-paths": "^4.2.0",
+    "vsce": "^2.15.0",
     "vscode": "^1.1.37"
   },
   "dependencies": {

@@ -1,10 +1,16 @@
 const path = require('path');
-const stripAnsi = require('strip-ansi');
+const stripAnsi = require('strip-ansi').default;
 const cp = require('child_process');
+const fs = require('fs');
 const v = require('../package.json').version;
 const name = require('../package.json').name;
 
-//console.log(path.resolve(__dirname, '..'));
+const outputPath = path.resolve(__dirname, '../dist/');
+
+if(fs.existsSync(outputPath) == false){
+    fs.mkdir(outputPath, () => {
+    });
+}
 
 const packageProcess = cp.spawn("vsce", ["package", "--out", "./dist"], {shell: true});
 
